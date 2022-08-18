@@ -72,7 +72,19 @@ def api_customer_create():
 
 @app.route('/api/v1/customers')
 def api_customers():
-    cs = [c.serialize() for c in Customer.select().order_by(Customer.name.asc())]
+    irr = request.args.get('irreguliers', type=int)
+    prosp = request.args.get('prospects', type=int)
+    name = request.args.get('name', '').strip()
+    print(irr, prosp)
+    query : pw.ModelSelect = Customer.select()#.order_by(Customer.name.asc())
+    if name:
+        query = query.where(Customer.name.contains(name))
+    if prosp:
+        query = query.where(Customer.is_prospect == bool(prosp))
+    if irr:
+        query = query.where(Customer.is_regulier != bool(irr))
+
+    cs = [c.serialize() for c in query.order_by(Customer.name.asc())]
     return jsonify({
         'success':True,
         'data':cs,
@@ -185,7 +197,12 @@ def api_pack_create():
 
 @app.route('/api/v1/packs')
 def api_packs():
-    ps = [p.serialize() for p in Pack.select().order_by(Pack.pk.desc())]
+    soumissions = request.args.get('soumissions', type=int)
+    query = Pack.select().join(Customer)
+    if soumissions:
+        query = query.where(Customer.is_prospect == bool(soumissions))
+
+    ps = [p.serialize() for p in query.order_by(Pack.pk.desc())]
     return jsonify({
         'success':True,
         'data':ps,
@@ -353,12 +370,20 @@ def api_facture_create():
     return jsonify({
         'success':statut,
         'data':f.serialize() if statut else f,
-        'message': 'Something'
+        'message': f'Facture {f.hash} générée' if statut else f'Erreur lors de la génération de la facture {f}'
     })
 
 @app.route('/api/v1/factures')
 def api_factures():
-    fs = [f.serialize() for f in Facture.select().order_by(Facture.date.desc())]
+    soumissions = request.args.get('soumissions', type=int)
+    notsent = request.args.get('notsent', type=int)
+
+    query : pw.ModelSelect = Facture.select().join(Customer)
+    if soumissions:
+        query = query.where(Customer.is_prospect == bool(soumissions))
+    if notsent:
+        query = query.where(Facture.sent != bool(notsent))
+    fs = [f.serialize() for f in query.order_by(Facture.date.desc())]
     return jsonify({
         'success':True,
         'data':fs,
@@ -434,7 +459,10 @@ def api_facture_send(hash):
 
 @app.route('/api/v1/facture/view/<hash>')
 def api_facture_view(hash):
-    return send_from_directory(os.getenv('DOCS_PATH'), f'{hash}.pdf')
+    if os.path.exists(os.path.join(os.getenv('DOCS_PATH'), f'{hash}.pdf')):
+        return send_from_directory(os.getenv('DOCS_PATH'), f'{hash}.pdf')
+    else:
+        return "Facture non disponible sur cette machine."
 
 # Production endpoints
 @app.route('/api/v1/production/create', methods=['POST'])

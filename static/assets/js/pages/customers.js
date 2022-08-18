@@ -7,13 +7,15 @@ $(document).ready((e) => {
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .post(`/api/v1/customer/delete/${row.id}`)
-          .then((res) => {
-            console.log(res.data.message);
-            row.remove();
-          })
-          .catch((err) => console.log(err));
+        if (window.confirm(`Voulez-vous supprimez l'utilisateur ${row.id} ?`)) {
+          axios
+            .post(`/api/v1/customer/delete/${row.id}`)
+            .then((res) => {
+              console.log(res.data.message);
+              row.remove();
+            })
+            .catch((err) => console.log(err));
+        }
       });
     });
     document.querySelectorAll("a.update").forEach((el) => {
@@ -189,3 +191,76 @@ document
 
     console.log(data);
   });
+
+let irrBox = document.querySelector("input#irregulierBox");
+let prospBox = document.querySelector("input#prospectBox");
+let searchBox = document.querySelector("button#searchButton");
+
+irrBox?.addEventListener("click", (e) => filter(e));
+prospBox?.addEventListener("click", (e) => filter(e));
+searchBox?.addEventListener("click", (e) => filter(e));
+
+function filter(e) {
+  axios
+    .get("/api/v1/customers", {
+      params: {
+        name: document.querySelector("input#searchBar").value,
+        irreguliers: Number(irrBox.checked),
+        prospects: Number(prospBox.checked),
+      },
+    })
+    .then((res) => fillTable(res))
+    .catch((err) => console.log(err));
+}
+
+function fillTable(res) {
+  let table = document.querySelector("tbody#customersTbody");
+  table?.querySelectorAll("tr").forEach((el) => {
+    el.remove();
+  });
+
+  if (res.data.success) {
+    res.data.data.forEach((element) => {
+      table?.appendChild(createRow(element));
+    });
+
+    document.querySelectorAll("a.delete").forEach((el) => {
+      el.addEventListener("click", (t) => {
+        let row = el.parentElement.parentElement.parentElement.parentElement;
+        if (window.confirm(`Voulez-vous supprimez l'utilisateur ${row.id} ?`)) {
+          axios
+            .post(`/api/v1/customer/delete/${row.id}`)
+            .then((res) => {
+              console.log(res.data.message);
+              row.remove();
+            })
+            .catch((err) => console.log(err));
+        }
+      });
+    });
+    document.querySelectorAll("a.update").forEach((el) => {
+      el.addEventListener("click", (t) => {
+        let row = el.parentElement.parentElement.parentElement.parentElement;
+        axios
+          .get(`/api/v1/customer/${row.id}`)
+          .then((res) => {
+            let f = document.querySelector("form#updateCustomerModalForm");
+            f.querySelector("input#ref").value = row.id;
+            document.querySelector("span#customer-to-update").textContent =
+              res.data.data.name;
+            f.querySelectorAll("input").forEach((el) => {
+              if (el.getAttribute("type") != "checkbox") {
+                el.value = res.data.data[el.name];
+                if (el.name == "city") {
+                  el.value = res.data.data["city"]["name"];
+                }
+              } else {
+                el.checked = res.data.data[el.name];
+              }
+            });
+          })
+          .catch((err) => console.log(err));
+      });
+    });
+  }
+}

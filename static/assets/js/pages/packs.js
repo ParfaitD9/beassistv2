@@ -171,3 +171,50 @@ document
       })
       .catch((err) => console.log(err));
   });
+
+soumissionBox = document.querySelector("input#soumissionBox");
+soumissionBox?.addEventListener("click", (e) => filter(e));
+
+function filter(e) {
+  axios
+    .get("/api/v1/packs", {
+      params: {
+        soumissions: Number(soumissionBox.checked),
+      },
+    })
+    .then((res) => fillTable(res))
+    .catch((err) => console.log(err));
+}
+
+function fillTable(res) {
+  let table = document.querySelector("tbody#packsTbody");
+  table?.querySelectorAll("tr").forEach((el) => {
+    el.remove();
+  });
+
+  if (res.data.success) {
+    res.data.data.forEach((element) => {
+      table?.appendChild(createRow(element));
+    });
+
+    document.querySelectorAll("a.delete").forEach((el) => {
+      el.addEventListener("click", (t) => {
+        let row = el.parentElement.parentElement.parentElement.parentElement;
+        axios
+          .post(`/api/v1/pack/delete/${row.id}`)
+          .then((res) => {
+            console.log(res.data.message);
+            row.remove();
+          })
+          .catch((err) => console.log(err));
+      });
+    });
+    $("a.facture").click((e) => {
+      let _id =
+        e.target.parentNode.parentNode.parentNode.parentNode.parentNode.id;
+
+      let f = document.querySelector("form#facturePackModalForm");
+      f.querySelector("input#ref").value = _id;
+    });
+  }
+}

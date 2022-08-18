@@ -8,16 +8,18 @@ $(document).ready((e) => {
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .post(`/api/v1/facture/delete/${row.id}`)
-          .then((res) => {
-            if (res.data.success) {
-              row.remove();
-            } else {
-              window.alert(res.data.message);
-            }
-          })
-          .catch((err) => console.log(err));
+        if (window.confirm(`Voulez-vous supprimer la facture ${row.id} ?`)) {
+          axios
+            .post(`/api/v1/facture/delete/${row.id}`)
+            .then((res) => {
+              if (res.data.success) {
+                row.remove();
+              } else {
+                window.alert(res.data.message);
+              }
+            })
+            .catch((err) => console.log(err));
+        }
       });
     });
 
@@ -175,3 +177,67 @@ $("form#addFactureModalForm").submit((e) => {
     })
     .catch((err) => console.log(err));
 });
+
+soumissionBox = document.querySelector("input#soumissionBox");
+notSentBox = document.querySelector("input#notSentBox");
+soumissionBox?.addEventListener("click", (e) => filter(e));
+notSentBox?.addEventListener("click", (e) => filter(e));
+
+function filter(e) {
+  axios
+    .get("/api/v1/factures", {
+      params: {
+        soumissions: Number(soumissionBox.checked),
+        notsent: Number(notSentBox.checked),
+      },
+    })
+    .then((res) => fillTable(res))
+    .catch((err) => console.log(err));
+}
+
+function fillTable(res) {
+  let table = document.querySelector("tbody#facturesTbody");
+  table?.querySelectorAll("tr").forEach((el) => {
+    el.remove();
+  });
+
+  if (res.data.success) {
+    res.data.data.forEach((element) => {
+      table?.appendChild(createRow(element));
+    });
+
+    document.querySelectorAll("a.delete").forEach((el) => {
+      el.addEventListener("click", (t) => {
+        let row = el.parentElement.parentElement.parentElement.parentElement;
+        if (window.confirm(`Voulez-vous supprimer la facture ${row.id} ?`)) {
+          axios
+            .post(`/api/v1/facture/delete/${row.id}`)
+            .then((res) => {
+              if (res.data.success) {
+                row.remove();
+              } else {
+                window.alert(res.data.message);
+              }
+            })
+            .catch((err) => console.log(err));
+        }
+      });
+    });
+
+    document.querySelectorAll("a.send").forEach((el) => {
+      el.addEventListener("click", (t) => {
+        let row = el.parentElement.parentElement.parentElement.parentElement;
+        axios
+          .post(`/api/v1/facture/send/${row.id}`)
+          .then((res) => {
+            if (res.data.success) {
+              window.alert(
+                `Facture ${res.data.data.hash} envoyé à ${res.data.data.customer.name}`
+              );
+            }
+          })
+          .catch((err) => console.log(err));
+      });
+    });
+  }
+}

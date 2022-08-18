@@ -1681,5 +1681,5 @@ if __name__ == '__main__':
         print('Tables created !')
     elif args.cmd == 'create-dirs':
         for path in (DOCS_PATH, BACKUP_PATH, COMPTA_PATH, FILES_PATH):
-            os.makedirs(path, exist_ok=True)
+            #os.makedirs(path, exist_ok=True)
             print(f'{path} créé !')

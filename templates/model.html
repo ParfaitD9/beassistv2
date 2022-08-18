@@ -1,19 +1,5 @@
-<!--
-=========================================================
-* Soft UI Dashboard - v1.0.6
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/soft-ui-dashboard
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://www.creative-tim.com/license)
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
--->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta
@@ -64,11 +50,7 @@
           aria-hidden="true"
           id="iconSidenav"
         ></i>
-        <a
-          class="navbar-brand m-0"
-          href=" https://demos.creative-tim.com/soft-ui-dashboard/pages/dashboard.html "
-          target="_blank"
-        >
+        <a class="navbar-brand m-0" href="/" target="_blank">
           <img
             src="/static/assets/img/logos/android-chrome-192x192.png"
             class="navbar-brand-img h-100"
@@ -514,21 +496,33 @@
                 <span class="input-group-text text-body"
                   ><i class="fas fa-search" aria-hidden="true"></i
                 ></span>
+                {% if actual == "Clients"%}
                 <input
                   type="text"
+                  id="searchBar"
                   class="form-control"
                   placeholder="Lancer une recherche ..."
                 />
+                {% else %}
+                <input
+                  type="text"
+                  id="searchBar"
+                  class="form-control"
+                  placeholder="Recherche non disponible actuellement"
+                  readonly
+                />
+                {% endif %}
               </div>
             </div>
             <ul class="navbar-nav justify-content-end">
               <li class="nav-item d-flex align-items-center">
-                <a
+                <button
                   class="btn btn-outline-primary btn-sm mb-0 me-3"
-                  target="_blank"
-                  href="https://www.creative-tim.com/builder/soft-ui?ref=navbar-dashboard"
-                  >Rechercher</a
+                  type="submit"
+                  id="searchButton"
                 >
+                  Rechercher
+                </button>
               </li>
               <li class="nav-item d-flex align-items-center">
                 <a
@@ -1808,7 +1802,7 @@
                 >
                   <li class="nav-item">
                     <a
-                      href="https://www.creative-tim.com"
+                      href="https://twitter.com/@EDetchenou"
                       class="nav-link text-muted"
                       target="_blank"
                       >Parfait Detchenou</a
@@ -1816,7 +1810,7 @@
                   </li>
                   <li class="nav-item">
                     <a
-                      href="https://www.creative-tim.com/presentation"
+                      href="https://becrypto-coinlist.herokuapp.com"
                       class="nav-link text-muted"
                       target="_blank"
                       >About Us</a
@@ -1824,7 +1818,7 @@
                   </li>
                   <li class="nav-item">
                     <a
-                      href="https://www.creative-tim.com/blog"
+                      href="https://becrypto-coinlist.herokuapp.com"
                       class="nav-link text-muted"
                       target="_blank"
                       >Blog</a
@@ -1832,7 +1826,7 @@
                   </li>
                   <li class="nav-item">
                     <a
-                      href="https://www.creative-tim.com/license"
+                      href="https://github.com/ParfaitD9/beassistv2"
                       class="nav-link pe-0 text-muted"
                       target="_blank"
                       >License</a
@@ -1941,34 +1935,26 @@
             />
           </div>
           <hr class="horizontal dark my-sm-4" />
-          <a
-            class="btn btn-outline-dark w-100"
-            href="https://www.creative-tim.com/learning-lab/bootstrap/license/soft-ui-dashboard"
-            >Tutoriel</a
-          >
+          <a class="btn btn-outline-dark w-100" href="#">Tutoriel</a>
           <div class="w-100 text-center">
             <a
               class="github-button"
-              href="https://github.com/creativetimofficial/soft-ui-dashboard"
+              href="https://github.com/ParfaitD9/beassistv2"
               data-icon="octicon-star"
               data-size="large"
               data-show-count="true"
-              aria-label="Star creativetimofficial/soft-ui-dashboard on GitHub"
+              aria-label="Star beassistv2 on GitHub"
               >Star</a
             >
             <h6 class="mt-3">Merci de votre confiance !</h6>
             <a
-              href="https://twitter.com/intent/tweet?text=Check%20Soft%20UI%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fsoft-ui-dashboard"
+              href="https://github.com/ParfaitD9/beassistv2"
               class="btn btn-dark mb-0 me-2"
               target="_blank"
             >
               <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
             </a>
-            <a
-              href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/soft-ui-dashboard"
-              class="btn btn-dark mb-0 me-2"
-              target="_blank"
-            >
+            <a href="#" class="btn btn-dark mb-0 me-2" target="_blank">
               <i class="fab fa-facebook-square me-1" aria-hidden="true"></i>
               Share
             </a>

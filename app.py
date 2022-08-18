@@ -376,8 +376,11 @@ def api_facture_create():
 def api_factures():
     soumissions = request.args.get('soumissions', type=int)
     notsent = request.args.get('notsent', type=int)
+    _hash = request.args.get('hash', '').strip()
 
     query : pw.ModelSelect = Facture.select().join(Customer)
+    if _hash:
+        query = query.where(Facture.hash.contains(_hash))
     if soumissions:
         query = query.where(Customer.is_prospect == bool(soumissions))
     if notsent:

@@ -180,8 +180,11 @@ $("form#addFactureModalForm").submit((e) => {
 
 soumissionBox = document.querySelector("input#soumissionBox");
 notSentBox = document.querySelector("input#notSentBox");
+let searchBox = document.querySelector("button#searchButton");
+
 soumissionBox?.addEventListener("click", (e) => filter(e));
 notSentBox?.addEventListener("click", (e) => filter(e));
+searchBox?.addEventListener("click", (e) => filter(e));
 
 function filter(e) {
   axios
@@ -189,6 +192,7 @@ function filter(e) {
       params: {
         soumissions: Number(soumissionBox.checked),
         notsent: Number(notSentBox.checked),
+        hash: document.querySelector("input#searchBar").value,
       },
     })
     .then((res) => fillTable(res))

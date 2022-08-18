@@ -17,7 +17,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument(
     'cmd',
-    choices=('create-tables', )
+    choices=('create-tables', 'create-dirs',)
 )
 
 DOCS_PATH = os.getenv('DOCS_PATH')

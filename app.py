@@ -75,7 +75,6 @@ def api_customers():
     irr = request.args.get('irreguliers', type=int)
     prosp = request.args.get('prospects', type=int)
     name = request.args.get('name', '').strip()
-    print(irr, prosp)
     query : pw.ModelSelect = Customer.select()#.order_by(Customer.name.asc())
     if name:
         query = query.where(Customer.name.contains(name))

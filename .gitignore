@@ -1,0 +1,11 @@
+venv
+templates/pages
+__pycache__
+.env
+compta
+backup
+files
+database.db3
+*.pyc
+*.pdf
+*.csv

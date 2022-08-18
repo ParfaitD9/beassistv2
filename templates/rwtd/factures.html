@@ -1,0 +1,190 @@
+{%extends 'model.html' %}
+<br />
+{%block content%}
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header pb-0">
+        <h6 style="display: inline-block">Table des factures</h6>
+        <div style="float: right" class="align-items-end">
+          <div style="display: inline-block">
+            <div class="form-check form-switch" style="display: inline-block">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="soumissionBox"
+              />
+              <label class="form-check-label" for="soumissionBox"
+                >Soumissions</label
+              >
+            </div>
+          </div>
+
+          <div style="display: inline-block; margin-left: 1rem">
+            <a
+              href="javascript:;"
+              class="nav-link text-body p-0"
+              id="dropdownFacturesMenuButton"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="fa fa-ellipsis-v cursor-pointer"></i>
+            </a>
+            <ul
+              class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
+              aria-labelledby="dropdownFacturesMenuButton"
+            >
+              <li class="mb-2">
+                <a
+                  class="dropdown-item border-radius-md"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addFactureModal"
+                >
+                  <p class="font-weight-bold">Rédiger une facture</p>
+                </a>
+              </li>
+              <li class="mb-2">
+                <a class="dropdown-item border-radius-md">
+                  <p class="font-weight-bold">Envoyer ces factures</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body px-0 pt-0 pb-2">
+        <div class="table-responsive p-0">
+          <table class="table align-items-center mb-0">
+            <thead>
+              <tr>
+                <th
+                  class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Hash
+                </th>
+                <th
+                  class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                >
+                  Client
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Coût
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Envoyé
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="facturesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  id="addFactureModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="addFactureModalLabel"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addFactureModalForm">
+        <div class="modal-header">
+          <h4 class="modal-title" id="addFactureModalLabel">
+            Rédiger une facture
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-hidden="true"
+          ></button>
+        </div>
+        <div class="alert" role="alert">
+          <p></p>
+        </div>
+        <div class="modal-body">
+          <div>
+            <p>Sous-tâches de la facture</p>
+            <ul id="associes"></ul>
+          </div>
+
+          <div class="form-group">
+            <label for="customer-name">Nom du client</label>
+            <select
+              class="form-control"
+              name="customer"
+              id="customers"
+            ></select>
+          </div>
+          <div class="form-group">
+            <label>Objet de la facture</label>
+            <input
+              type="text"
+              id="inputName"
+              name="name"
+              class="form-control"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="inputSubtask">Sous tâche</label>
+            <input
+              type="text"
+              id="inputSubtask"
+              name="subtask"
+              class="form-control"
+              list="subtasks"
+            />
+            <datalist id="subtasks"> </datalist>
+          </div>
+          <div class="form-group">
+            <label for="inputValue">Coût</label>
+            <input
+              class="form-control"
+              type="number"
+              name="value"
+              min="0"
+              id="inputValue"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Annuler"
+          />
+          <input
+            type="button"
+            id="add-subtask"
+            value="Ajouter un service"
+            class="btn btn-primary"
+          />
+          <input type="submit" class="btn btn-success" value="Créer" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{%endblock%}
+<br />
+{% block chartbox %} {%endblock%} {%block js%}
+<script src="/static/assets/js/pages/factures.js"></script>
+{%endblock%}

@@ -1,0 +1,178 @@
+{%extends 'model.html' %}
+<br />
+{%block content%}
+<div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <h6 style="display: inline-block">Table des productions</h6>
+          <div style="float: right" class="align-items-end">
+            <div style="display: inline-block; margin-left: 1rem">
+              <a
+                href="javascript:;"
+                class="nav-link text-body p-0"
+                id="dropdownProductionMenuButton"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fa fa-ellipsis-v cursor-pointer"></i>
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
+                aria-labelledby="dropdownProductionMenuButton"
+              >
+                <li class="mb-2">
+                  <a
+                    class="dropdown-item border-radius-md"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addProdModal"
+                  >
+                    <p class="font-weight-bold">Créer une liste</p>
+                  </a>
+                </li>
+                <li class="mb-2">
+                  <a class="dropdown-item border-radius-md">
+                    <p class="font-weight-bold">Facturer ces listes</p>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+  
+        <div class="card-body px-0 pt-0 pb-2">
+          <div class="table-responsive p-0">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th
+                    class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                  >
+                    Nom
+                  </th>
+                  <th
+                    class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                  >
+                    Description
+                  </th>
+                  <th
+                    class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                  >
+                    Prix
+                  </th>
+                  </th>
+                  <th
+                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="productionsTbody">
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<div
+  id="addProdModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="addProdModalLabel"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addProdModalForm">
+        <div class="modal-header">
+          <h4 class="modal-title" id="addProdModalLabel">
+            Créer une liste de production
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="alert" role="alert"><p></p></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="list-name">Nom de production</label>
+                <input type="text" name="list-name" id="list-name" class="form-control">
+            </div>
+          <div class="form-group">
+            <label for="packs">Contrats à intégrer</label>
+            <select name="packs" id="packs" class="form-control" multiple></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Fermer"
+          />
+          <input type="submit" class="btn btn-success" value="Créer" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div
+  id="sendProdModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="sendProdModalLabel"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="sendProdModalForm">
+        <div class="modal-header">
+          <h4 class="modal-title" id="sendProdModalLabel">
+            Facturer et envoyer une liste de production
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="alert" role="alert"><p></p></div>
+        <div class="modal-body">
+          <input type="number" name="pk" id="ref" hidden>
+            <div class="form-group">
+                <label for="obj">Objet de la facturation</label>
+                <input type="text" name="obj" id="obj" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="msg">Message d'envoi</label>
+                <textarea name="msg" id="msg" cols="30" rows="5" class="form-control"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Annuler"
+          />
+          <input type="submit" class="btn btn-success" value="Créer" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{%endblock%}
+<br>
+{% block js%}
+<script src="/static/assets/js/pages/productions.js"></script>
+{%endblock%}
+{% block chartbox%}
+{%endblock%}

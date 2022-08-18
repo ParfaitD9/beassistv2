@@ -1,0 +1,143 @@
+{% extends 'model.html' %}
+<br />
+{%block content %}
+<main class="container">
+  <div class="card">
+    <div class="card-header">
+      <a href="/packs"><i class="bi bi-arrow-left">Retour</i></a>
+      <b>{{pack.name}}</b>
+    </div>
+    <div class="card-body">
+      <div class="alert" role="alert">
+        <p></p>
+      </div>
+      <ul id="associes">
+        {% for subtask in pack.subtasks %}
+        <li id="{{subtask.id}}">
+          <a href="#{{subtask.id}}" class="delete"
+            >{{subtask.subtask.name}} {{subtask.value}}</a
+          >
+        </li>
+        {% endfor %}
+      </ul>
+      <form id="updatePackForm">
+        <input type="number" name="pk" id="ref" value="{{pack.pk}}" hidden />
+        <div class="form-group">
+          <label for="packName">Nom du pack</label>
+          <input
+            type="text"
+            name="packName"
+            class="form-control"
+            value="{{pack.name}}"
+          />
+        </div>
+        <div class="form-group">
+          <label for="inputSubtask">Sous tâche</label>
+          <input
+            type="text"
+            id="inputSubtask"
+            name="subtask"
+            class="form-control"
+            list="subtasks"
+          />
+          <datalist id="subtasks"> </datalist>
+        </div>
+        <div class="form-group">
+          <label for="inputValue">Coût</label>
+          <input
+            class="form-control"
+            type="number"
+            name="value"
+            min="0"
+            id="inputValue"
+          />
+        </div>
+        <div class="form-group modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Annuler"
+          />
+          <button type="button" id="add-subtask" class="btn btn-primary">
+            Ajouter un service
+          </button>
+          <input type="submit" class="btn btn-success" value="Save" />
+        </div>
+      </form>
+    </div>
+    <div class="card-footer">
+      <b>Total</b> :
+      <h3 style="display: inline">{{pack.price()}}</h3>
+      CAD
+    </div>
+  </div>
+</main>
+{%endblock%} {% block chartbox%} {%endblock%}
+<br />
+{% block js %}
+<script type="text/javascript">
+  load_subtasks();
+  document.querySelectorAll("a.delete").forEach((a) => {
+    a.addEventListener("click", (t) => {
+      axios
+        .post(`/api/v1/packsubtask/delete/${a.parentElement.id}`)
+        .then((res) => {
+          if (res.data.success) {
+            a.parentElement.remove();
+            document.querySelector("div.alert").querySelector("p").textContent =
+              res.data.message;
+          }
+        })
+        .catch((err) => console.log(err));
+    });
+    $("button#add-subtask")
+      .unbind()
+      .click((e) => {
+        e.preventDefault();
+        console.log(e.target);
+        let form = document.querySelector("form#updatePackForm");
+        let data = new FormData(form);
+        if (data.get("subtask") && data.get("value")) {
+          axios
+            .post(`/api/v1/packsubtask/create`, data)
+            .then((res) => {
+              console.log(res.data);
+              document
+                .querySelector("div.alert")
+                .querySelector("p").textContent = res.data.message;
+              form.reset();
+              document
+                .querySelector("ul#associes")
+                ?.appendChild(createLi(res.data.data));
+            })
+            .catch((err) => console.log(err));
+        }
+      });
+  });
+
+  $("form#updatePackForm").submit((e) => {
+    e.preventDefault();
+    let form = document.querySelector("form#updatePackForm");
+    let data = new FormData(form);
+    let pk = data.get("pk");
+    data.delete("pk");
+    axios
+      .post(`/api/v1/pack/update/${pk}`, data)
+      .then((res) => {
+        document.querySelector("div.alert").querySelector("p").textContent =
+          res.data.message;
+      })
+      .catch((err) => console.log(err));
+  });
+  function createLi(data) {
+    let li = document.createElement("li");
+    li.id = data.id;
+    li.innerHTML = `<a href="#${data.id}" class="delete"
+            >${data.subtask.name} ${data.value}</a
+          >`;
+
+    return li;
+  }
+</script>
+{%endblock%}

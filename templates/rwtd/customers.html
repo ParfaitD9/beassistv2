@@ -1,0 +1,490 @@
+{% extends 'model.html' %}
+<br />
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header pb-0">
+        <h6 style="display: inline-block">Table des clients</h6>
+        <div style="float: right" class="align-items-end">
+          <div style="display: inline-block">
+            <div class="form-check form-switch" style="display: inline-block">
+              <input class="form-check-input" type="checkbox" id="rememberMe" />
+              <label class="form-check-label" for="rememberMe"
+                >Irréguliers</label
+              >
+            </div>
+            <div class="form-check form-switch" style="display: inline-block">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="prospectBox"
+              />
+              <label class="form-check-label" for="prospectBox"
+                >Prospects</label
+              >
+            </div>
+          </div>
+
+          <div style="display: inline-block; margin-left: 1rem">
+            <a
+              href="javascript:;"
+              class="nav-link text-body p-0"
+              id="dropdownCustomerMenuButton"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="fa fa-ellipsis-v cursor-pointer"></i>
+            </a>
+            <ul
+              class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
+              aria-labelledby="dropdownCustomerMenuButton"
+            >
+              <li class="mb-2">
+                <a
+                  class="dropdown-item border-radius-md"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addCustomerModal"
+                >
+                  <p class="font-weight-bold">Ajouter un client</p>
+                </a>
+              </li>
+              <li class="mb-2">
+                <a class="dropdown-item border-radius-md">
+                  <p class="font-weight-bold">Facturer les clients</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body px-0 pt-0 pb-2">
+        <div class="table-responsive p-0">
+          <table class="table align-items-center mb-0">
+            <thead>
+              <tr>
+                <th
+                  class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Nom
+                </th>
+                <th
+                  class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                >
+                  Localisation
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Statut
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Client depius
+                </th>
+                <th
+                  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="customersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  id="addCustomerModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="addCustomerModallablel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addCustomerModalForm" autocomplete="off">
+        <div class="modal-header">
+          <h4 class="modal-title" id="addCustomerModallablel">
+            Ajouter un client
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="alert" role="alert">
+          <p></p>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="name" class="form-label">Nom</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Courriel</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Téléphone</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                name="phone"
+                required
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="porte">N° de porte</label>
+              <input
+                type="number"
+                class="form-control"
+                id="inputPorte"
+                name="porte"
+                min="0"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="inputStreet">Rue</label>
+              <input
+                type="text"
+                class="form-control"
+                id="inputStreet"
+                name="street"
+                required
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="inputAppart">N° appart</label>
+              <input
+                type="number"
+                class="form-control"
+                id="inputAppart"
+                min="0"
+                name="appart"
+              />
+            </div>
+            <div class="col-md-5">
+              <label for="city" class="form-label">Ville</label>
+              <input
+                type="text"
+                name="city"
+                class="form-control"
+                list="cities"
+                required
+              />
+              <datalist id="cities"></datalist>
+            </div>
+            <div class="col-md-4">
+              <label for="inputProvince" class="form-label">Province</label>
+              <input
+                type="text"
+                value="Québec"
+                class="form-control"
+                id="inputProvince"
+                name="province"
+                required
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="inputPostal" class="form-label">Postal</label>
+              <input
+                type="text"
+                class="form-control"
+                id="inputPostal"
+                name="postal"
+              />
+            </div>
+            <div class="col-6">
+              <label for="inputStatut">Statut</label>
+              <select name="statut" id="inputStatut" class="form-control">
+                <option value="C">Commercial</option>
+                <option value="I">Instutionnel</option>
+                <option value="R">Résidentiel</option>
+              </select>
+            </div>
+            <div class="col-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="regulierBox"
+                  checked
+                  name="is_regulier"
+                />
+                <label class="form-check-label" for="regulierBox">
+                  Régulier ?
+                </label>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="prospectBox"
+                  name="is_prospect"
+                />
+                <label class="form-check-label" for="prospectBox">
+                  Prospect ?
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Annuler"
+          />
+          <input type="submit" class="btn btn-primary" value="Add" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div
+  id="updateCustomerModal"
+  tabindex="-1"
+  aria-labelledby="updateCustomerModallablel"
+  aria-hidden="true"
+  class="modal fade"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="updateCustomerModalForm" autocomplete="off">
+        <div class="modal-header">
+          <h4 class="modal-title" id="updateCustomerModallablel">
+            Modifier le client <span id="customer-to-update"></span>
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="alert" role="alert">
+          <p></p>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <input type="number" name="pk" hidden id="ref" />
+            <div class="col-12">
+              <label for="name" class="form-label">Nom</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Courriel</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Téléphone</label>
+              <input type="tel" class="form-control" id="phone" name="phone" />
+            </div>
+            <div class="col-md-3">
+              <label for="porte">N° de porte</label>
+              <input
+                type="number"
+                class="form-control"
+                id="inputPorte"
+                name="porte"
+                min="0"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="inputStreet">Rue</label>
+              <input
+                type="text"
+                class="form-control"
+                id="inputStreet"
+                name="street"
+                required
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="inputAppart">N° appart</label>
+              <input
+                type="number"
+                class="form-control"
+                id="inputAppart"
+                min="0"
+                name="appart"
+              />
+            </div>
+            <div class="col-md-5">
+              <label for="city" class="form-label">Ville</label>
+              <input
+                type="text"
+                name="city"
+                class="form-control"
+                list="cities"
+                required
+              />
+              <datalist id="cities"></datalist>
+            </div>
+            <div class="col-md-4">
+              <label for="inputProvince" class="form-label">Province</label>
+              <input
+                type="text"
+                class="form-control"
+                id="inputProvince"
+                name="province"
+                required
+              />
+            </div>
+            <div class="col-md-3">
+              <label for="inputPostal" class="form-label">Postal</label>
+              <input
+                type="text"
+                class="form-control"
+                id="inputPostal"
+                name="postal"
+              />
+            </div>
+            <div class="col-6">
+              <label for="inputStatut">Statut</label>
+              <select name="statut" id="inputStatut" class="form-control">
+                <option value="C">Commercial</option>
+                <option value="I">Instutionnel</option>
+                <option value="R">Résidentiel</option>
+              </select>
+            </div>
+            <div class="col-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="regulierBox"
+                  checked
+                  name="is_regulier"
+                />
+                <label class="form-check-label" for="regulierBox">
+                  Régulier ?
+                </label>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="prospectBox"
+                  name="is_prospect"
+                />
+                <label class="form-check-label" for="prospectBox">
+                  Prospect ?
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary">Annuler</button>
+          <button type="submit" class="btn btn-primary">Modifier</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="customerDetailModal"
+  tabindex="-1"
+  aria-labelledby="customerDetailModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customerDetailModalLabel">
+          Client <span id="customerDetailName"></span>
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <h5>Nom du client</h3>
+          </li>
+          <li class="list-group-item">
+            <a
+              href="mailto:exemple@gmail.com"
+              class="nav-link text-body font-weight-bold px-0"
+            >
+              <i class="fa fa-envelope me-sm-1"></i>
+              <p class="d-sm-inline d-none">exemple@gmail.com</p>
+            </a>
+          </li>
+          <li class="list-group-item">
+            <a
+              href="tel:4682803029"
+              class="nav-link text-body font-weight-bold px-0"
+            >
+              <i class="fa fa-phone me-sm-1"></i>
+              <p class="d-sm-inline d-none">4682803029</p>
+            </a>
+          </li>
+          <li class="list-group-item">
+            <i class="fa fa-calendar me-sm-1"></i>
+            <p class="d-sm-inline d-none">2022-09-11 17:09:32</p>
+          </li>
+          <li class="list-group-item">
+            <i class="fa fa-map-pin me-sm-1"></i>
+            <p class="d-sm-inline d-none">90 Bd. Chatriers app 11 Saint-Eustache</p>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%} {% block js%}
+<script src="/static/assets/js/pages/customers.js"></script>
+{% endblock %} {% block chartbox%} {% endblock %}

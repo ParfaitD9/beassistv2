@@ -26,6 +26,10 @@ $(document).ready((e) => {
     document.querySelectorAll("a.send").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
+        document
+          .querySelector("form#sendFactureModalForm")
+          .querySelector("input#ref").value = row.id;
+        /*
         axios
           .post(`/api/v1/facture/send/${row.id}`)
           .then((res) => {
@@ -36,6 +40,7 @@ $(document).ready((e) => {
             }
           })
           .catch((err) => console.log(err));
+          */
       });
     });
   }, 1000);
@@ -134,6 +139,21 @@ function fillFactures() {
     .catch((err) => console.log(err));
 }
 
+$("form#sendFactureModalForm").submit((e) => {
+  e.preventDefault();
+  let data = new FormData(e.target);
+  let pk = data.get("pk");
+  data.delete("pk");
+  axios
+    .post(`/api/v1/facture/send/${pk}`, data)
+    .then((res) => {
+      if (res.data.success) {
+        showModalAlert("sendFactureModal", res);
+        e.reset();
+      }
+    })
+    .catch((err) => console.log(err));
+});
 $("input#add-subtask").click((e) => {
   if ($("input#inputSubtask").val() && $("input#inputValue").val()) {
     let sub = document.createElement("li");
@@ -231,6 +251,10 @@ function fillTable(res) {
     document.querySelectorAll("a.send").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
+        document
+          .querySelector("form#sendFactureModalForm")
+          .querySelector("input#ref").value = row.id;
+        /*
         axios
           .post(`/api/v1/facture/send/${row.id}`)
           .then((res) => {
@@ -241,6 +265,7 @@ function fillTable(res) {
             }
           })
           .catch((err) => console.log(err));
+          */
       });
     });
   }

@@ -440,7 +440,7 @@ def api_facture_delete(hash):
 
 @app.route('/api/v1/facture/send/<hash>', methods=['POST',])
 def api_facture_send(hash):
-    body = request.form.get('body', "Message sur la facture à envoyer.")
+    body = request.form.get('msg', "Message sur la facture à envoyer.")
     try:
         f : Facture = Facture.get(hash=hash)
     except (pw.DoesNotExist, ) as e:
@@ -454,7 +454,7 @@ def api_facture_send(hash):
         r = {
             'success':True,
             'data':f.serialize(),
-            'message':'Facture bien envoyée'
+            'message':f'Facture {f.hash} bien envoyée à {f.customer.name}'
         }
     
     return jsonify(r)

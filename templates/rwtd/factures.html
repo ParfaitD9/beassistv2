@@ -191,6 +191,54 @@
     </div>
   </div>
 </div>
+
+<div
+  id="sendFactureModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="sendFactureModalLabel"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="sendFactureModalForm">
+        <div class="modal-header">
+          <h4 class="modal-title" id="sendFactureModalLabel">
+            Envoyer une facture
+          </h4>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="alert" role="alert"><p></p></div>
+        <div class="modal-body">
+          <input type="text" name="pk" id="ref" hidden />
+          <div class="form-group">
+            <label for="msg">Message d'envoi</label>
+            <textarea
+              name="msg"
+              id="msg"
+              cols="30"
+              rows="5"
+              class="form-control"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <input
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            value="Fermer"
+          />
+          <input type="submit" class="btn btn-success" value="Envoyer" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {%endblock%}
 <br />
 {% block chartbox %} {%endblock%} {%block js%}

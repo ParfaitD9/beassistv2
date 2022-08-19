@@ -310,7 +310,7 @@ def api_subtask_create():
 
 @app.route('/api/v1/subtasks')
 def api_subtasks():
-    sts = [st.serialize() for st in SubTask.select()]
+    sts = [st.serialize() for st in SubTask.select().order_by(SubTask.name.asc())]
     return jsonify({
         'success':True,
         'data':sts,

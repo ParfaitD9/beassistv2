@@ -36,19 +36,19 @@ function createRow(pack) {
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
             aria-labelledby="dropdownPackMenuButton-${pack.pk}"
         >
-            <li class="mb-2">
-                <a class="dropdown-item border-radius-md facture" data-bs-toggle="modal" data-bs-target="#facturePackModal">
-                    <p class="font-weight-bold">Facturer ce contrat</p>
+            <li>
+                <a class="font-weight-bold dropdown-item border-radius-md" onclick="pack_facture(event)" data-bs-toggle="modal" data-bs-target="#facturePackModal">
+                  Facturer ce contrat
                 </a>
             </li>
-            <li class="mb-2">
-                <a class="dropdown-item border-radius-md update disabled">
-                    <p class="font-weight-bold">Modifier ce contrat</p>
+            <li>
+                <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                    Modifier ce contrat
                 </a>
             </li>
-            <li class="mb-2">
-                <a class="dropdown-item border-radius-md delete">
-                    <p class="font-weight-bold">Supprimer ce contrat</p>
+            <li>
+                <a class="font-weight-bold dropdown-item border-radius-md" onclick="pack_delete(event)">
+                    Supprimer ce contrat
                 </a>
             </li>
         </ul>
@@ -132,6 +132,7 @@ $(document).ready((e) => {
 
   document.querySelector("a.nav-link.active").classList.remove("active");
   document.querySelectorAll("a.nav-link")[2].classList.add("active");
+  /*
   setTimeout(() => {
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
@@ -153,6 +154,7 @@ $(document).ready((e) => {
       f.querySelector("input#ref").value = _id;
     });
   }, 1000);
+  */
 });
 
 document
@@ -196,7 +198,7 @@ function fillTable(res) {
     res.data.data.forEach((element) => {
       table?.appendChild(createRow(element));
     });
-
+    /*
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
@@ -216,5 +218,27 @@ function fillTable(res) {
       let f = document.querySelector("form#facturePackModalForm");
       f.querySelector("input#ref").value = _id;
     });
+    */
   }
+}
+
+function pack_delete(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  axios
+    .post(`/api/v1/pack/delete/${row.id}`)
+    .then((res) => {
+      if (res.data.success) {
+        console.log(res.data.message);
+        row.remove();
+      } else {
+        window.alert(res.data.message);
+      }
+    })
+    .catch((err) => console.log(err));
+}
+
+function pack_facture(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  let f = document.querySelector("form#facturePackModalForm");
+  f.querySelector("input#ref").value = row.id;
 }

@@ -3,7 +3,7 @@ $(document).ready((e) => {
   document.querySelectorAll("a.nav-link")[4].classList.add("active");
   fillProductions();
   load_packs();
-
+  /*
   setTimeout((t) => {
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
@@ -28,6 +28,7 @@ $(document).ready((e) => {
       });
     });
   }, 1000);
+  */
 });
 
 function createRow(production) {
@@ -74,24 +75,24 @@ function createRow(production) {
               class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
               aria-labelledby="dropdownProdMenuButton-${production.pk}"
           >
-              <li class="mb-2">
-                  <a class="dropdown-item border-radius-md facture disabled">
-                      <p class="font-weight-bold">Facturer cette production</p>
+              <li>
+                  <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                      Facturer cette production
                   </a>
               </li>
-              <li class="mb-2">
-                  <a class="dropdown-item border-radius-md update disabled">
-                      <p class="font-weight-bold">Modifier cette production</p>
+              <li>
+                  <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                      Modifier cette production
                   </a>
               </li>
-              <li class="mb-2">
-                  <a class="dropdown-item border-radius-md send" data-bs-toggle="modal" data-bs-target="#sendProdModal">
-                      <p class="font-weight-bold">Envoyer cette production</p>
+              <li>
+                  <a class="font-weight-bold dropdown-item border-radius-md" onclick="production_send(event)" data-bs-toggle="modal" data-bs-target="#sendProdModal">
+                      Envoyer cette production
                   </a>
               </li>
-              <li class="mb-2">
-                  <a class="dropdown-item border-radius-md delete">
-                      <p class="font-weight-bold">Supprimer cette production</p>
+              <li>
+                  <a class="font-weight-bold dropdown-item border-radius-md" onclick="production_delete(event)">
+                      Supprimer cette production
                   </a>
               </li>
           </ul>
@@ -159,3 +160,24 @@ $("form#sendProdModalForm").submit((e) => {
     })
     .catch((err) => console.log(err));
 });
+
+function production_send(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  document
+    .querySelector("form#sendProdModalForm")
+    .querySelector("input#ref").value = row.id;
+}
+
+function production_delete(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  axios
+    .post(`/api/v1/production/delete/${row.id}`)
+    .then((res) => {
+      if (res.data.success) {
+        row.remove();
+      } else {
+        window.alert(res.data.message);
+      }
+    })
+    .catch((err) => console.log(err));
+}

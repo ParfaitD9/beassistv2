@@ -258,6 +258,7 @@
             type="button"
             class="btn btn-secondary"
             data-bs-dismiss="modal"
+            aria-label="Close"
             value="Fermer"
           />
           <input type="submit" class="btn btn-primary" value="Add" />
@@ -416,7 +417,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary">Fermer</button>
+          <button type="button" data-bs-dismiss="modal"
+          aria-label="Close" class="btn btn-secondary">Fermer</button>
           <button type="submit" class="btn btn-primary">Modifier</button>
         </div>
       </form>

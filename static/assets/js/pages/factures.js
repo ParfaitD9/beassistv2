@@ -4,6 +4,7 @@ $(document).ready((e) => {
   load_customers();
   load_subtasks();
   fillFactures();
+  /*
   setTimeout(() => {
     document.querySelectorAll("a.delete").forEach((el) => {
       el.addEventListener("click", (t) => {
@@ -22,28 +23,17 @@ $(document).ready((e) => {
         }
       });
     });
-
+    
     document.querySelectorAll("a.send").forEach((el) => {
       el.addEventListener("click", (t) => {
         let row = el.parentElement.parentElement.parentElement.parentElement;
         document
           .querySelector("form#sendFactureModalForm")
           .querySelector("input#ref").value = row.id;
-        /*
-        axios
-          .post(`/api/v1/facture/send/${row.id}`)
-          .then((res) => {
-            if (res.data.success) {
-              window.alert(
-                `Facture ${res.data.data.hash} envoyé à ${res.data.data.customer.name}`
-              );
-            }
-          })
-          .catch((err) => console.log(err));
-          */
       });
     });
   }, 1000);
+  */
 });
 
 var currentFacture = {
@@ -100,19 +90,19 @@ function createRow(facture) {
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
             aria-labelledby="dropdownFactureMenuButton-${facture.hash}"
         >
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md send" data-bs-toggle="modal" data-bs-target="#sendFactureModal">
-                <p class="font-weight-bold">Envoyer cette facture</p>
+            <li>
+            <a class="font-weight-bold dropdown-item border-radius-md send" onclick="facture_send(event)" data-bs-toggle="modal" data-bs-target="#sendFactureModal">
+                Envoyer cette facture
             </a>
             </li>
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md disabled">
-                <p class="font-weight-bold">Classer cette facture</p>
+            <li>
+            <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                Classer cette facture
             </a>
             </li>
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md delete">
-                <p class="font-weight-bold">Supprimer cette facture</p>
+            <li>
+            <a class="font-weight-bold dropdown-item border-radius-md delete" onclick="facture_delete(event)">
+                Supprimer cette facture
             </a>
             </li>        
         </ul>
@@ -229,44 +219,29 @@ function fillTable(res) {
     res.data.data.forEach((element) => {
       table?.appendChild(createRow(element));
     });
+  }
+}
 
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        if (window.confirm(`Voulez-vous supprimer la facture ${row.id} ?`)) {
-          axios
-            .post(`/api/v1/facture/delete/${row.id}`)
-            .then((res) => {
-              if (res.data.success) {
-                row.remove();
-              } else {
-                window.alert(res.data.message);
-              }
-            })
-            .catch((err) => console.log(err));
+function facture_send(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  document
+    .querySelector("form#sendFactureModalForm")
+    .querySelector("input#ref").value = row.id;
+}
+
+function facture_delete(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  if (window.confirm(`Voulez-vous supprimer la facture ${row.id} ?`)) {
+    axios
+      .post(`/api/v1/facture/delete/${row.id}`)
+      .then((res) => {
+        if (res.data.success) {
+          console.log(res.data.message);
+          row.remove();
+        } else {
+          window.alert(res.data.message);
         }
-      });
-    });
-
-    document.querySelectorAll("a.send").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        document
-          .querySelector("form#sendFactureModalForm")
-          .querySelector("input#ref").value = row.id;
-        /*
-        axios
-          .post(`/api/v1/facture/send/${row.id}`)
-          .then((res) => {
-            if (res.data.success) {
-              window.alert(
-                `Facture ${res.data.data.hash} envoyé à ${res.data.data.customer.name}`
-              );
-            }
-          })
-          .catch((err) => console.log(err));
-          */
-      });
-    });
+      })
+      .catch((err) => console.log(err));
   }
 }

@@ -3,62 +3,6 @@ $(document).ready((e) => {
   document.querySelectorAll("a.nav-link")[1].classList.add("active");
   console.log("JQuery available");
   fillCustomers();
-  setTimeout(() => {
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        if (window.confirm(`Voulez-vous supprimez l'utilisateur ${row.id} ?`)) {
-          axios
-            .post(`/api/v1/customer/delete/${row.id}`)
-            .then((res) => {
-              console.log(res.data.message);
-              row.remove();
-            })
-            .catch((err) => console.log(err));
-        }
-      });
-    });
-    document.querySelectorAll("a.update").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .get(`/api/v1/customer/${row.id}`)
-          .then((res) => {
-            let f = document.querySelector("form#updateCustomerModalForm");
-            f.querySelector("input#ref").value = row.id;
-            document.querySelector("span#customer-to-update").textContent =
-              res.data.data.name;
-            f.querySelectorAll("input").forEach((el) => {
-              if (el.getAttribute("type") != "checkbox") {
-                el.value = res.data.data[el.name];
-                if (el.name == "city") {
-                  el.value = res.data.data["city"]["name"];
-                }
-              } else {
-                el.checked = res.data.data[el.name];
-              }
-            });
-          })
-          .catch((err) => console.log(err));
-      });
-      /*
-      axios
-        .get(`/api/customers/${_id}`)
-        .then((res) => {
-          let f = document.querySelector("form#updateCustomerModalForm");
-          document.querySelector("span#customer-to-update").textContent =
-            res.data.data.name;
-          f.querySelectorAll("input").forEach((el) => {
-            el.value = res.data.data[el.name];
-            if (el.name == "city") {
-              el.value = res.data.data["city"]["name"];
-            }
-          });
-        })
-        .catch((err) => console.log(err));
-      */
-    });
-  }, 1000);
 });
 
 function fillCustomers() {
@@ -135,20 +79,20 @@ function createRow(data) {
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
             aria-labelledby="dropdownCustomerMenuButton-${data.pk}"
         >
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md update" data-bs-toggle="modal" data-bs-target="#updateCustomerModal">
-                <p class="font-weight-bold">Modifier ce client</p>
+            <li onclick="customer_update(event)">
+            <a class="mb-1 dropdown-item border-radius-md font-weight-bold" data-bs-toggle="modal" data-bs-target="#updateCustomerModal">
+                Modifier ce client
             </a>
             </li>
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md disabled">
-                <p class="font-weight-bold">Facturer son pack</p>
+            <li>
+            <a class="mb-1 dropdown-item border-radius-md font-weight-bold disabled">
+                Facturer son pack
             </a>
             </li>
-            <li class="mb-2">
-            <a class="dropdown-item border-radius-md delete">
-                <p class="font-weight-bold">Supprimer ce client</p>
-            </a>
+            <li onclick="customer_delete(event)">
+              <a class="mb-1 dropdown-item border-radius-md font-weight-bold">
+                Supprimer ce client
+              </a>
             </li>
         </ul>
     </td>
@@ -218,49 +162,48 @@ function fillTable(res) {
   table?.querySelectorAll("tr").forEach((el) => {
     el.remove();
   });
-
   if (res.data.success) {
     res.data.data.forEach((element) => {
       table?.appendChild(createRow(element));
     });
+  }
+}
 
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        if (window.confirm(`Voulez-vous supprimez l'utilisateur ${row.id} ?`)) {
-          axios
-            .post(`/api/v1/customer/delete/${row.id}`)
-            .then((res) => {
-              console.log(res.data.message);
-              row.remove();
-            })
-            .catch((err) => console.log(err));
+function customer_delete(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  if (window.confirm(`Voulez-vous supprimez l'utilisateur ${row.id} ?`)) {
+    axios
+      .post(`/api/v1/customer/delete/${row.id}`)
+      .then((res) => {
+        if (res.data.success) {
+          row.remove();
+        } else {
+          window.alert(res.data.message);
+        }
+      })
+      .catch((err) => console.log(err));
+  }
+}
+
+function customer_update(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  axios
+    .get(`/api/v1/customer/${row.id}`)
+    .then((res) => {
+      let f = document.querySelector("form#updateCustomerModalForm");
+      f.querySelector("input#ref").value = row.id;
+      document.querySelector("span#customer-to-update").textContent =
+        res.data.data.name;
+      f.querySelectorAll("input").forEach((el) => {
+        if (el.getAttribute("type") != "checkbox") {
+          el.value = res.data.data[el.name];
+          if (el.name == "city") {
+            el.value = res.data.data["city"]["name"];
+          }
+        } else {
+          el.checked = res.data.data[el.name];
         }
       });
-    });
-    document.querySelectorAll("a.update").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .get(`/api/v1/customer/${row.id}`)
-          .then((res) => {
-            let f = document.querySelector("form#updateCustomerModalForm");
-            f.querySelector("input#ref").value = row.id;
-            document.querySelector("span#customer-to-update").textContent =
-              res.data.data.name;
-            f.querySelectorAll("input").forEach((el) => {
-              if (el.getAttribute("type") != "checkbox") {
-                el.value = res.data.data[el.name];
-                if (el.name == "city") {
-                  el.value = res.data.data["city"]["name"];
-                }
-              } else {
-                el.checked = res.data.data[el.name];
-              }
-            });
-          })
-          .catch((err) => console.log(err));
-      });
-    });
-  }
+    })
+    .catch((err) => console.log(err));
 }

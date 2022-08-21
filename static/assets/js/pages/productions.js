@@ -3,32 +3,6 @@ $(document).ready((e) => {
   document.querySelectorAll("a.nav-link")[4].classList.add("active");
   fillProductions();
   load_packs();
-  /*
-  setTimeout((t) => {
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .post(`/api/v1/production/delete/${row.id}`)
-          .then((res) => {
-            if (res.data.success) {
-              row.remove();
-            }
-          })
-          .catch((err) => console.log(err));
-      });
-    });
-
-    document.querySelectorAll("a.send").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        document
-          .querySelector("form#sendProdModalForm")
-          .querySelector("input#ref").value = row.id;
-      });
-    });
-  }, 1000);
-  */
 });
 
 function createRow(production) {

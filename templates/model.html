@@ -25,11 +25,10 @@
     <!-- Nucleo Icons -->
     <link href="/static/assets/css/nucleo-icons.css" rel="stylesheet" />
     <link href="/static/assets/css/nucleo-svg.css" rel="stylesheet" />
+    <!--Bootstrap Icons-->
+    <link rel="stylesheet" href="/static/assets/css/bootstrap-icons.css" />
     <!-- Font Awesome Icons -->
-    <script
-      src="https://kit.fontawesome.com/42d5adcbca.js"
-      crossorigin="anonymous"
-    ></script>
+
     <link href="/static/assets/css/nucleo-svg.css" rel="stylesheet" />
     <!-- CSS Files -->
     <link
@@ -494,7 +493,7 @@
             <div class="ms-md-auto pe-md-3 d-flex align-items-center">
               <div class="input-group">
                 <span class="input-group-text text-body"
-                  ><i class="fas fa-search" aria-hidden="true"></i
+                  ><i class="bi bi-search" aria-hidden="true"></i
                 ></span>
                 {% if actual in ("Clients", "Factures")%}
                 <input
@@ -502,6 +501,7 @@
                   id="searchBar"
                   class="form-control"
                   placeholder="Lancer une recherche ..."
+                  onkeyup="filter(event)"
                 />
                 {% else %}
                 <input
@@ -529,7 +529,7 @@
                   href="javascript:;"
                   class="nav-link text-body font-weight-bold px-0"
                 >
-                  <i class="fa fa-user me-sm-1"></i>
+                  <i class="bi bi-person-circle me-sm-1"></i>
                   <span class="d-sm-inline d-none">Déconnexion</span>
                 </a>
               </li>
@@ -549,7 +549,7 @@
               <li class="nav-item px-3 d-flex align-items-center">
                 <a href="javascript:;" class="nav-link text-body p-0">
                   <i
-                    class="fa fa-cog fixed-plugin-button-nav cursor-pointer"
+                    class="bi bi-gear-fill fixed-plugin-button-nav cursor-pointer"
                   ></i>
                 </a>
               </li>
@@ -561,7 +561,7 @@
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  <i class="fa fa-bell cursor-pointer"></i>
+                  <i class="bi bi-clock-fill cursor-pointer"></i>
                 </a>
                 <ul
                   class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
@@ -569,114 +569,19 @@
                 >
                   <li class="mb-2">
                     <a
-                      class="dropdown-item border-radius-md"
+                      class="dropdown-item border-radius-md h6 backup"
+                      id="backup"
                       href="javascript:;"
+                      >Créer un backup</a
                     >
-                      <div class="d-flex py-1">
-                        <div class="my-auto">
-                          <img
-                            src="/static/assets/img/team-2.jpg"
-                            class="avatar avatar-sm me-3"
-                          />
-                        </div>
-                        <div class="d-flex flex-column justify-content-center">
-                          <h6 class="text-sm font-weight-normal mb-1">
-                            <span class="font-weight-bold">New message</span>
-                            from Laur
-                          </h6>
-                          <p class="text-xs text-secondary mb-0">
-                            <i class="fa fa-clock me-1"></i>
-                            13 minutes ago
-                          </p>
-                        </div>
-                      </div>
-                    </a>
                   </li>
                   <li class="mb-2">
                     <a
-                      class="dropdown-item border-radius-md"
+                      class="dropdown-item border-radius-md h6 backup"
                       href="javascript:;"
+                      id="load-backup"
                     >
-                      <div class="d-flex py-1">
-                        <div class="my-auto">
-                          <img
-                            src="/static/assets/img/small-logos/logo-spotify.svg"
-                            class="avatar avatar-sm bg-gradient-dark me-3"
-                          />
-                        </div>
-                        <div class="d-flex flex-column justify-content-center">
-                          <h6 class="text-sm font-weight-normal mb-1">
-                            <span class="font-weight-bold">New album</span> by
-                            Travis Scott
-                          </h6>
-                          <p class="text-xs text-secondary mb-0">
-                            <i class="fa fa-clock me-1"></i>
-                            1 day
-                          </p>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item border-radius-md"
-                      href="javascript:;"
-                    >
-                      <div class="d-flex py-1">
-                        <div
-                          class="avatar avatar-sm bg-gradient-secondary me-3 my-auto"
-                        >
-                          <svg
-                            width="12px"
-                            height="12px"
-                            viewBox="0 0 43 36"
-                            version="1.1"
-                            xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink"
-                          >
-                            <title>credit-card</title>
-                            <g
-                              stroke="none"
-                              stroke-width="1"
-                              fill="none"
-                              fill-rule="evenodd"
-                            >
-                              <g
-                                transform="translate(-2169.000000, -745.000000)"
-                                fill="#FFFFFF"
-                                fill-rule="nonzero"
-                              >
-                                <g
-                                  transform="translate(1716.000000, 291.000000)"
-                                >
-                                  <g
-                                    transform="translate(453.000000, 454.000000)"
-                                  >
-                                    <path
-                                      class="color-background"
-                                      d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z"
-                                      opacity="0.593633743"
-                                    ></path>
-                                    <path
-                                      class="color-background"
-                                      d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"
-                                    ></path>
-                                  </g>
-                                </g>
-                              </g>
-                            </g>
-                          </svg>
-                        </div>
-                        <div class="d-flex flex-column justify-content-center">
-                          <h6 class="text-sm font-weight-normal mb-1">
-                            Payment successfully completed
-                          </h6>
-                          <p class="text-xs text-secondary mb-0">
-                            <i class="fa fa-clock me-1"></i>
-                            2 days
-                          </p>
-                        </div>
-                      </div>
+                      Charger les backups actuels
                     </a>
                   </li>
                 </ul>
@@ -790,14 +695,9 @@
                   <div class="col-8">
                     <div class="numbers">
                       <p class="text-sm mb-0 text-capitalize font-weight-bold">
-                        Ventes totals
+                        Total facturé
                       </p>
-                      <h5 class="font-weight-bolder mb-0">
-                        $103,430
-                        <span class="text-success text-sm font-weight-bolder"
-                          >+5%</span
-                        >
-                      </h5>
+                      <h5 class="font-weight-bolder mb-0">$103,430</h5>
                     </div>
                   </div>
                   <div class="col-4 text-end">
@@ -1102,7 +1002,7 @@
               <div class="card-header pb-0">
                 <h6>Aperçu des ventes</h6>
                 <p class="text-sm">
-                  <i class="fa fa-arrow-up text-success"></i>
+                  <i class="bi bi-arrow-up text-success"></i>
                   <span class="font-weight-bold">4% more</span> in 2021
                 </p>
               </div>
@@ -1126,7 +1026,10 @@
                   <div class="col-lg-6 col-7">
                     <h6>Agenda</h6>
                     <p class="text-sm mb-0">
-                      <i class="fa fa-check text-info" aria-hidden="true"></i>
+                      <i
+                        class="bi bi-check-lg text-info"
+                        aria-hidden="true"
+                      ></i>
                       <span class="font-weight-bold ms-1">30 done</span> this
                       month
                     </p>
@@ -1139,7 +1042,7 @@
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                       >
-                        <i class="fa fa-ellipsis-v text-secondary"></i>
+                        <i class="bi bi-three-dot-vertical text-secondary"></i>
                       </a>
                       <ul
                         class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5"
@@ -1672,7 +1575,7 @@
               <div class="card-header pb-0">
                 <h6>Orders overview</h6>
                 <p class="text-sm">
-                  <i class="fa fa-arrow-up text-success" aria-hidden="true"></i>
+                  <i class="bi bi-arrow-up text-success" aria-hidden="true"></i>
                   <span class="font-weight-bold">24%</span> this month
                 </p>
               </div>
@@ -1841,7 +1744,7 @@
     </main>
     <div class="fixed-plugin">
       <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-        <i class="fa fa-cog py-2"> </i>
+        <i class="bi bi-gear-fill py-2"> </i>
       </a>
       <div class="card shadow-lg">
         <div class="card-header pb-0 pt-3">
@@ -1853,7 +1756,7 @@
             <button
               class="btn btn-link text-dark p-0 fixed-plugin-close-button"
             >
-              <i class="fa fa-close"></i>
+              <i class="bi bi-x"></i>
             </button>
           </div>
           <!-- End Toggle Button -->

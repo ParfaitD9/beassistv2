@@ -30,7 +30,7 @@ function createRow(pack) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
         >
-            <i class="fa fa-ellipsis-h cursor-pointer"></i>
+            <i class="bi bi-three-dots cursor-pointer"></i>
         </a>
         <ul
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
@@ -42,7 +42,9 @@ function createRow(pack) {
                 </a>
             </li>
             <li>
-                <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                <a class="font-weight-bold dropdown-item border-radius-md" href="/pack/${
+                  pack.pk
+                }">
                     Modifier ce contrat
                 </a>
             </li>

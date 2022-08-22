@@ -1122,6 +1122,7 @@ class PackSubTask(BaseModel):
 
     def serialize(self):
         return {
+            'pk':self.id,
             'subtask':self.subtask.serialize(),
             'value':float(self.value)
         }

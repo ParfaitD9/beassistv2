@@ -62,3 +62,20 @@ function load_packs() {
       .catch((err) => console.log(err));
   }
 }
+
+$("a.backup").click((e) => {
+  e.preventDefault();
+  axios
+    .post(`/api/v2/backup/${e.target.id}`)
+    .then((res) => {
+      window.alert(res.data.message);
+    })
+    .catch((err) => console.log(err));
+});
+
+/*
+<script
+      src="https://kit.fontawesome.com/42d5adcbca.js"
+      crossorigin="anonymous"
+    ></script>
+*/

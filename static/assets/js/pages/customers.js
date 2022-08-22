@@ -3,6 +3,7 @@ $(document).ready((e) => {
   document.querySelectorAll("a.nav-link")[1].classList.add("active");
   console.log("JQuery available");
   fillCustomers();
+  osOnChangeTimerDelay = 500;
 });
 
 function fillCustomers() {
@@ -73,7 +74,7 @@ function createRow(data) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
         >
-            <i class="fa fa-ellipsis-h cursor-pointer"></i>
+            <i class="bi bi-three-dots cursor-pointer"></i>
         </a>
         <ul
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
@@ -139,11 +140,12 @@ document
 let irrBox = document.querySelector("input#irregulierBox");
 let prospBox = document.querySelector("input#prospectBox");
 let searchBox = document.querySelector("button#searchButton");
+let searchBar = document.querySelector("input#searchBar");
 
 irrBox?.addEventListener("click", (e) => filter(e));
 prospBox?.addEventListener("click", (e) => filter(e));
 searchBox?.addEventListener("click", (e) => filter(e));
-
+//searchBar?.addEventListener("change", (e) => filter(e));
 function filter(e) {
   axios
     .get("/api/v1/customers", {

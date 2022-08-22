@@ -43,7 +43,7 @@ function createRow(production) {
               data-bs-toggle="dropdown"
               aria-expanded="false"
           >
-              <i class="fa fa-ellipsis-h cursor-pointer"></i>
+              <i class="bi bi-three-dots cursor-pointer"></i>
           </a>
           <ul
               class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"

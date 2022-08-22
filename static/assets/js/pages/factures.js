@@ -4,6 +4,7 @@ $(document).ready((e) => {
   load_customers();
   load_subtasks();
   fillFactures();
+
   /*
   setTimeout(() => {
     document.querySelectorAll("a.delete").forEach((el) => {
@@ -84,7 +85,7 @@ function createRow(facture) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
         >
-            <i class="fa fa-ellipsis-h cursor-pointer"></i>
+            <i class="bi bi-three-dots cursor-pointer"></i>
         </a>
         <ul
             class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4"
@@ -188,13 +189,15 @@ $("form#addFactureModalForm").submit((e) => {
     .catch((err) => console.log(err));
 });
 
-soumissionBox = document.querySelector("input#soumissionBox");
-notSentBox = document.querySelector("input#notSentBox");
+let soumissionBox = document.querySelector("input#soumissionBox");
+let notSentBox = document.querySelector("input#notSentBox");
 let searchBox = document.querySelector("button#searchButton");
+let searchBar = document.querySelector("input#searchBar");
 
 soumissionBox?.addEventListener("click", (e) => filter(e));
 notSentBox?.addEventListener("click", (e) => filter(e));
 searchBox?.addEventListener("click", (e) => filter(e));
+searchBar?.addEventListener("change", (e) => filter(e));
 
 function filter(e) {
   axios

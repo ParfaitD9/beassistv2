@@ -1,12 +1,12 @@
 from flask import Flask, send_from_directory
 from flask import render_template, request
 from flask.json import jsonify
-from ut1ls.orm import Customer, City, Facture, ListPack, ListProduction, SubTask, PackSubTask, Pack,  db
+from ut1ls.orm import Customer, City, Facture, ListPack, Event, ListProduction, SubTask, PackSubTask, Pack,  db
 from ut1ls.mailer import Mailer
 import peewee as pw
 import json
 import os
-
+from datetime import datetime as dt
 
 
 app = Flask(__name__)
@@ -81,7 +81,7 @@ def api_customers():
     if prosp:
         query = query.where(Customer.is_prospect == bool(prosp))
     if irr:
-        query = query.where(Customer.is_regulier != bool(irr))
+        query = query.where(Customer.is_regulier == bool(irr))
 
     cs = [c.serialize() for c in query.order_by(Customer.name.asc())]
     return jsonify({
@@ -598,7 +598,7 @@ def api_packsubtask_create():
         return jsonify({
             'success':True,
             'data':p.serialize(),
-            'message':f'{p.subtask.name} ajouté au pack {p.pack.name}'
+            'message':f'{p.subtask.name} ajouté au contrat {p.pack.name}'
         })
 
 @app.route('/api/v1/packsubtask/<int:pk>', methods=['POST',])
@@ -625,22 +625,95 @@ def api_packsubtask_delete(pk):
         return jsonify({
             'success':True,
             'data':p.serialize(),
-            'message':f'{p.subtask.name} retiré du pack {p.pack.name}'
+            'message':f'{p.subtask.name} retiré du contrat {p.pack.name}'
         })
 
 # Utilitaires endpoints
-@app.route('/api/v2/backup', methods=['POST',])
-def backup():
-    instance = request.form.get('instance')
-    file = request.files.get('toload')
-    with file.stream as f:
-        print(f.read().decode(errors='ignore'))
+@app.route('/api/v2/backup/<action>', methods=['POST',])
+def api_backup(action):
+    if action == 'backup':
+        Customer.to_csv()
+        Pack.to_csv()
+        SubTask.to_csv()
+        PackSubTask.to_csv()
+        ListProduction.to_csv()
+        ListPack.to_csv()
+
+        msg = "Toutes les informations actuelles ont été sauvegardés"
+    elif action == 'load-backup':
+        Customer.read_csv()
+        Pack.read_csv()
+        SubTask.read_csv()
+        PackSubTask.read_csv()
+        ListProduction.read_csv()
+        ListPack.read_csv()
+
+        msg = "Les informations ont été bien chargées en base de données"
     return jsonify({
         'success':True,
-        'data':'',
-        'message':'Données chargées'
+        'message' : msg,
+        'data' : '',
     })
 
+@app.route('/api/v2/state')
+def api_state():
+    moneyCeMois = Facture.select(
+        pw.fn.SUM(Facture.cout)
+        ).where(
+            Facture.date.month == dt.today().month
+        ).scalar()
+    moneyCeMois = moneyCeMois if moneyCeMois else 0
 
+    moneySumTotal = Facture.select(pw.fn.SUM(Facture.cout)).scalar()
+    moneySumTotal = moneySumTotal if moneySumTotal else 0
+
+    moneySentCeMois = Facture.select(
+        pw.fn.SUM(Facture.cout)
+        ).where(
+            Facture.sent & Facture.date.month == dt.today().month
+        ).scalar() 
+    moneySentCeMois = moneySentCeMois if moneySentCeMois else 0
+
+    moneySentTotal = Facture.select(pw.fn.SUM(Facture.cout)).where(Facture.sent).scalar()
+    moneySentTotal = moneySentTotal if moneySentTotal else 0
+
+    factureCeMois = Facture.select().where(Facture.date.month == dt.today().month).count()
+    factureTotal = Facture.select().count()
+    factureCeMoisSent = Facture.select().where(
+            Facture.sent & Facture.date.month == dt.today().month
+        ).count()
+    factureSentTotal = Facture.select().where(Facture.sent).count()
+
+    clientTotal = Customer.select().count()
+    clientCeMois = Customer.select().where(Customer.joined.month == dt.today().month).count()
+
+    packTotal = Pack.select().count()
+    serviceTotal = SubTask.select().count()
+
+    return jsonify({
+        'fixed':{
+            'moneyMonth': {
+                'value':moneyCeMois,
+                'percent':round((moneyCeMois / moneySumTotal) * 100, 2),
+                'sent':moneySentCeMois
+            },
+            'factureMonth':{
+                'value':factureCeMois,
+                'percent':round((factureCeMois / factureTotal) * 100, 2),
+                'sent':factureCeMoisSent
+            },
+            'clientMonth' : {
+                'value':clientCeMois,
+                'percent':round((clientCeMois / clientTotal) * 100, 2),
+            },
+            'moneySentTotal':moneySentTotal,
+            'moneyTotal':moneySumTotal,
+            'clientTotal': clientTotal,
+            'factureSentTotal': factureSentTotal,
+            'packTotal':packTotal,
+            'serviceTotal':serviceTotal,
+            'factureTotal':factureTotal
+        }
+    })
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

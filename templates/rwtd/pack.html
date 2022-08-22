@@ -14,7 +14,7 @@
       <ul id="associes">
         {% for subtask in pack.subtasks %}
         <li id="{{subtask.id}}">
-          <a href="#{{subtask.id}}" class="delete"
+          <a class="delete" onclick="subtask_delete(event)"
             >{{subtask.subtask.name}} {{subtask.value}}</a
           >
         </li>
@@ -22,10 +22,6 @@
       </ul>
       <form id="updatePackForm">
         <input type="number" name="pk" id="ref" value="{{pack.pk}}" hidden />
-        <small
-          >* Vous ne pouvez pas supprimer un service qui vient juste d'être
-          ajouté</small
-        >
         <div class="form-group">
           <label for="packName">Nom du pack</label>
           <input
@@ -57,12 +53,6 @@
           />
         </div>
         <div class="form-group modal-footer">
-          <input
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-            value="Fermer"
-          />
           <button type="button" id="add-subtask" class="btn btn-primary">
             Ajouter un service
           </button>
@@ -84,6 +74,7 @@
   document.querySelector("a.nav-link.active").classList.remove("active");
   document.querySelectorAll("a.nav-link")[2].classList.add("active");
   load_subtasks();
+  /*
   document.querySelectorAll("a.delete").forEach((a) => {
     a.addEventListener("click", (t) => {
       axios
@@ -100,6 +91,7 @@
         .catch((err) => console.log(err));
     });
   });
+  */
   $("button#add-subtask")
     .unbind()
     .click((e) => {
@@ -114,19 +106,25 @@
             document.querySelector("div.alert").querySelector("p").textContent =
               res.data.message;
             if (res.data.success) {
+              console.log(res.data);
               form.reset();
               document
                 .querySelector("ul#associes")
                 ?.appendChild(createLi(res.data.data));
               document.querySelector("h4#packPrice").textContent =
-                Number.parseFloat(
-                  document.querySelector("h4#packPrice").textContent
-                ) + res.data.data.value;
+                Math.round(
+                  (Number.parseFloat(
+                    document.querySelector("h4#packPrice").textContent
+                  ) +
+                    res.data.data.value) *
+                    100
+                ) / 100;
             }
           })
           .catch((err) => console.log(err));
       }
     });
+
   $("form#updatePackForm").submit((e) => {
     e.preventDefault();
     let form = document.querySelector("form#updatePackForm");
@@ -141,14 +139,31 @@
       })
       .catch((err) => console.log(err));
   });
+
   function createLi(data) {
     let li = document.createElement("li");
-    li.id = data.id;
-    li.innerHTML = `<a href="#${data.id}" class="delete"
+    li.id = data.pk;
+    li.innerHTML = `<a class="delete" onclick="subtask_delete(event)"
             >${data.subtask.name} ${data.value}</a
           >`;
 
     return li;
+  }
+
+  function subtask_delete(e) {
+    e.preventDefault();
+    axios
+      .post(`/api/v1/packsubtask/delete/${e.target.parentElement.id}`)
+      .then((res) => {
+        if (res.data.success) {
+          e.target.parentElement.remove();
+          document.querySelector("div.alert").querySelector("p").textContent =
+            res.data.message;
+          document.querySelector("h4#packPrice").textContent -=
+            res.data.data.value;
+        }
+      })
+      .catch((err) => console.log(err));
   }
 </script>
 {%endblock%}

@@ -899,7 +899,7 @@ NEQ : 2277408505
             pdf.cell(
                 txt=f"Cher {self.customer.name}, Entretien Excellence vous propose les services suivant : ")
         pdf.set_y(percent(33, True))
-        line_height = pdf.font_size * 1.75
+        line_height = pdf.font_size * 2
         col_width = pdf.epw / 2  # distribute content evenly
         for i, row in enumerate(data):
             if i in (0, len(data) - 1):

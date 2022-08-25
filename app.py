@@ -3,6 +3,7 @@ from flask import render_template, request
 from flask.json import jsonify
 from ut1ls.orm import Customer, City, Facture, ListPack, Event, ListProduction, SubTask, PackSubTask, Pack,  db
 from ut1ls.mailer import Mailer
+from ut1ls.agenda import Agenda
 import peewee as pw
 import json
 import os
@@ -11,6 +12,7 @@ from datetime import datetime as dt
 
 app = Flask(__name__)
 m = Mailer(os.getenv('EMAIL_USER', 'pdetchenou@gmail.com'))
+ag = Agenda(os.getenv('EMAIL_USER', 'pdetchenou@gmail.com'))
 
 
 @app.route('/')
@@ -422,19 +424,13 @@ def api_facture_delete(hash):
             'message':e.args[0]
         }
     else:
-        if not f.sent:
-            f.delete_()
-            r = {
+        f.delete_()
+        r = {
             'success':True,
             'data':f.serialize(),
             'message':'Facture supprimé'
         }
-        else:
-            r = {
-            'success':False,
-            'data':f.serialize(),
-            'message': f'La facture {f.hash} ne peut être supprimé car elle a déjà été envoyée.'
-        }
+        
     
     return jsonify(r)
 
@@ -691,29 +687,46 @@ def api_state():
     serviceTotal = SubTask.select().count()
 
     return jsonify({
-        'fixed':{
-            'moneyMonth': {
-                'value':moneyCeMois,
-                'percent':round((moneyCeMois / moneySumTotal) * 100, 2),
-                'sent':moneySentCeMois
-            },
-            'factureMonth':{
-                'value':factureCeMois,
-                'percent':round((factureCeMois / factureTotal) * 100, 2),
-                'sent':factureCeMoisSent
-            },
-            'clientMonth' : {
-                'value':clientCeMois,
-                'percent':round((clientCeMois / clientTotal) * 100, 2),
-            },
-            'moneySentTotal':moneySentTotal,
-            'moneyTotal':moneySumTotal,
-            'clientTotal': clientTotal,
-            'factureSentTotal': factureSentTotal,
-            'packTotal':packTotal,
-            'serviceTotal':serviceTotal,
-            'factureTotal':factureTotal
-        }
+        'success':True,
+        'data':{
+            'fixed':{
+                'moneyMonth.value':moneyCeMois,
+                'moneyMonth.percent':round((moneyCeMois / moneySumTotal) * 100, 2),
+                'moneyMonth.sent':moneySentCeMois,
+                'factureMonth.value':factureCeMois,
+                'factureMonth.percent': round((factureCeMois / factureTotal) * 100, 2),
+                'factureMonth.sent':factureCeMoisSent,
+                'clientMonth.value':clientCeMois,
+                'clientMonth.percent':round((clientCeMois / clientTotal) * 100, 2),
+                'moneySentTotal':moneySentTotal,
+                'moneyTotal.value':moneySumTotal,
+                'clientTotal': clientTotal,
+                'factureSentTotal': factureSentTotal,
+                'packTotal':packTotal,
+                'serviceTotal':serviceTotal,
+                'factureTotal':factureTotal
+            }
+        },
+        'message':''
+        
     })
+
+@app.route('/api/v2/agenda/')
+def api_agenda():
+    limit = request.args.get('limit',16, type=int)
+    try:
+        events = ag.events(limit=limit)
+    except (Exception, ) as e:
+        return jsonify({
+            'success':False,
+            'data':'',
+            'message':f'{e.__class__}: {e.args}'
+        })
+    else:
+        return jsonify({
+            'success':True,
+            'data':events,
+            'message': f'{len(events)} événements trouvés'
+        })
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

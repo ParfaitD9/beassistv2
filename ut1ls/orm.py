@@ -5,7 +5,6 @@ import time
 from fpdf import FPDF
 from datetime import datetime as dt
 import os
-import dateparser as dp
 import hashlib as hb
 from fpdf.template import Template
 from tabulate import tabulate
@@ -462,42 +461,6 @@ class Facture(BaseModel):
     is_soumission = pw.BooleanField(default=False)
     customer: Customer = pw.ForeignKeyField(Customer, backref='factures')
 
-    @staticmethod
-    def lister(debut=None, fin=None):
-        '''
-        Lister les factures générées dans un intervalle
-        debut:str: Date de début pour les factures
-        fin:str: Date de fin pour les factures
-
-        Le format idéal YYYY-MM-DD
-        '''
-
-        if debut and fin:
-            debut, fin = dp.parse(debut), dp.parse(fin)
-            print(f'Affichage des factures du {debut} au {fin}')
-            facs = [[fac.hash, fac.customer, fac.date, 'Oui' if fac.sent else 'Non']
-                    for fac in Facture.select().where(debut <= Facture.date <= fin)]
-        else:
-            facs = [[fac.hash, fac.customer, fac.date,
-                     'Oui' if fac.sent else 'Non'] for fac in Facture.select()]
-        print(tabulate(facs, headers=[
-            'Hash', 'Client', 'Date', 'Envoyé ?'], tablefmt='orgtbl'))
-
-    @staticmethod
-    def sendall(debut=None, fin=None):
-        if debut and fin:
-            debut = dp.parse(debut)
-            fin = dp.parse(fin)
-            inter = Facture.select().where(
-                (Facture.sent == False) &
-                (debut <= Facture.date <= fin)
-            ).order_by('-date')
-        else:
-            inter = Facture.select().where(Facture.sent == False).order_by('-date')
-
-        for facture in inter:
-            facture: Facture
-            facture.send()
 
     @staticmethod
     def clean(read: dict):

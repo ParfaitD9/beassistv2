@@ -895,10 +895,10 @@ NEQ : 2277408505
         pdf: FPDF = f.pdf
         pdf.set_font("helvetica", size=12)
         if self.customer.is_prospect:
-            pdf.set_y(percent(38, True))
+            pdf.set_y(percent(27, True))
             pdf.cell(
                 txt=f"Cher {self.customer.name}, Entretien Excellence vous propose les services suivant : ")
-        pdf.set_y(percent(40, True))
+        pdf.set_y(percent(33, True))
         line_height = pdf.font_size * 1.75
         col_width = pdf.epw / 2  # distribute content evenly
         for i, row in enumerate(data):
@@ -919,7 +919,7 @@ NEQ : 2277408505
                 )
             pdf.ln(line_height)
 
-        pdf.set_y(percent(60, True))
+        pdf.set_y(percent(75, True))
         pdf.set_font(style='', size=16)
         pdf.cell(txt="Merci de votre confiance !")
 

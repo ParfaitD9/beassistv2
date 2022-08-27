@@ -1,9 +1,8 @@
 from flask import Flask, send_from_directory
 from flask import render_template, request
 from flask.json import jsonify
-from ut1ls.orm import Customer, City, Facture, ListPack, Event, ListProduction, SubTask, PackSubTask, Pack,  db
-from ut1ls.mailer import Mailer
-from ut1ls.agenda import Agenda
+from ut1ls.orm import Customer, City, Facture, ListPack, ListProduction, SubTask, PackSubTask, Pack,  db
+from ut1ls.mailer import Mailer, Agenda
 import peewee as pw
 import json
 import os
@@ -11,8 +10,8 @@ from datetime import datetime as dt
 
 
 app = Flask(__name__)
-m = Mailer(os.getenv('EMAIL_USER', 'pdetchenou@gmail.com'))
-ag = Agenda(os.getenv('EMAIL_USER', 'pdetchenou@gmail.com'))
+m = Mailer()
+ag = Agenda()
 
 
 @app.route('/')

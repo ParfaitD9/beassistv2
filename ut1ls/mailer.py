@@ -1,12 +1,14 @@
 import os
-import pickle
 
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from google.auth.exceptions import RefreshError
+from googleapiclient.errors import HttpError
 from googleapiclient.discovery import Resource
 
+from datetime import datetime as dt
+from datetime import timedelta
 from base64 import urlsafe_b64encode
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -16,41 +18,45 @@ from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 from mimetypes import guess_type as guess_mime_type
 
+# gmail v1
+# calendar v3
+
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://mail.google.com/']
+SCOPES = ['https://mail.google.com/', 'https://www.googleapis.com/auth/calendar.readonly']
 EMAIL = os.getenv('EMAIL_USER')
 
-
-class Mailer:
-    """"Implémentation des fonctions nécessaires à l'envoi de mail."""
-    def __init__(self, mail) -> None:
-        self.mail: str = mail
-        self.scopes: list = SCOPES
-        self.service = self.authenticate()
-
-    def authenticate(self) -> Resource:
+class GoogleAPI:
+    def authenticate(self, service, version) -> Resource:
         creds = None
-        # the file token.pickle stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first time
-        if os.path.exists("./files/token.pickle"):
-            with open("./files/token.pickle", "rb") as token:
-                creds = pickle.load(token)
-        # if there are no (valid) credentials availablle, let the user log in.
+        # The file token.json stores the user's access and refresh tokens, and is
+        # created automatically when the authorization flow completes for the first
+        # time.
+        if os.path.exists('files/google-api.json'):
+            creds = Credentials.from_authorized_user_file('files/google-api.json', SCOPES)
+        # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                try:
-                    creds.refresh(Request())
-                except (RefreshError,) as e:
-                    os.unlink('./files/token.pickle')
-                    return
+                creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    './files/credentials.json', SCOPES)
+                    'files/credentials.json', SCOPES)
                 creds = flow.run_local_server(port=0)
-            # save the credentials for the next run
-            with open("./files/token.pickle", "wb") as token:
-                pickle.dump(creds, token)
-        return build('gmail', 'v1', credentials=creds)
+            # Save the credentials for the next run
+            with open('files/google-api.json', 'w') as token:
+                token.write(creds.to_json())
+
+        try:
+            r = build(serviceName=service, version=version, credentials=creds)
+        except HttpError as error:
+            print('An error occurred: %s' % error)
+        else:
+            return r
+
+
+class Mailer(GoogleAPI):
+    """"Implémentation des fonctions nécessaires à l'envoi de mail."""
+    def __init__(self) -> None:
+        self.service = self.authenticate('gmail', 'v1')
 
     def add_attachment(self, message: MIMEMultipart, filename: str):
         if os.path.exists(filename):
@@ -104,3 +110,18 @@ class Mailer:
             userId="me",
             body=self.build_message(destination, obj, body, attachments)
         ).execute()
+
+class Agenda(GoogleAPI):
+    def __init__(self):
+        self.service = self.authenticate('calendar', 'v3')
+
+    def events(self, calendarId='2d92kdfv7o5s5o8ph3d3fi03k8@group.calendar.google.com', _from : dt = dt.utcnow(), to = (dt.utcnow() + timedelta(days=7)), limit=10):
+        # Call the Calendar API
+        _from = _from.isoformat() + 'Z'  # 'Z' indicates UTC time
+        events_result = self.service.events().list(calendarId=calendarId, timeMin=_from,
+                                            maxResults=limit, singleEvents=True,
+                                            orderBy='startTime').execute()
+        events = events_result.get('items', [])
+
+        return events
+        

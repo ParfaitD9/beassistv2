@@ -718,6 +718,22 @@ class SubTask(BaseModel):
             'name': read.get('name'),
         }
 
+    @staticmethod
+    def from_agenda_event(event : dict):
+        name = event['summary']
+        customer : Customer = Customer.get(Customer.name.ilike(name))
+        subtasks = list()
+        for clause in event.get('description').split('\n'):
+            s, p = clause.split(' - ')
+            sub, _ = SubTask.get_or_create(name = s.lower().capitalize())
+            prix = float(p)
+
+            ps = PackSubTask.create(
+                customer = customer,
+                
+            )
+
+
     def serialize(self):
         return {
             'pk': self.pk,
@@ -835,7 +851,7 @@ class Pack(BaseModel):
             {'name': 'admin-billet', 'type': 'T', 'size': 11,
                 'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
             {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-                'x1': percent(60), 'x2': percent(95), 'y1': percent(5, True), 'y2': percent(7, True), },
+                'x1': percent(60), 'x2': percent(95), 'y1': percent(5.3, True), 'y2': percent(7, True), },
             {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
             {'name': 'client-billet', 'type': 'T', 'size': 11,

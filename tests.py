@@ -11,7 +11,7 @@ test_db = pw.SqliteDatabase(':memory:')
 
 class MailTest(TestCase):
     def test_mail_sending(self):
-        m = Mailer('pdetchenou@gmail.com')
+        m = Mailer()
         r: dict = m.send_message(
             'tomavorebeka@gmail.com',
             'Message test',

@@ -1,4 +1,5 @@
 import csv
+from functools import reduce
 import shutil
 import peewee as pw
 import time
@@ -672,6 +673,23 @@ class Event(BaseModel):
         self.facture = None
         self.save()
 
+    @staticmethod
+    def parse_agenda_event(event : dict):
+        name = event['summary']
+        customer : Customer = Customer.get(Customer.name.ilike(name))
+        subtasks = list()
+        clauses = event.get('description').split('\n')
+        for s, p in [clause.split(' - ') for clause in clauses]:
+            subtasks.append({'service': s.strip().lower().capitalize(), 'value':float(p.strip())})
+        
+        return {
+            'customer':customer.serialize(),
+            'subtasks' : subtasks,
+            'start':event['start']['dateTime'].removesuffix('Z').replace('T', ' '),
+            'url':event['htmlLink'],
+            'montant':sum([s.get('value', 0) for s in subtasks])
+        }
+    
     def __str__(self):
         return f'{self.name} for {self.customer}'
 
@@ -717,22 +735,6 @@ class SubTask(BaseModel):
             'pk': int(read.get('pk')),
             'name': read.get('name'),
         }
-
-    @staticmethod
-    def from_agenda_event(event : dict):
-        name = event['summary']
-        customer : Customer = Customer.get(Customer.name.ilike(name))
-        subtasks = list()
-        for clause in event.get('description').split('\n'):
-            s, p = clause.split(' - ')
-            sub, _ = SubTask.get_or_create(name = s.lower().capitalize())
-            prix = float(p)
-
-            ps = PackSubTask.create(
-                customer = customer,
-                
-            )
-
 
     def serialize(self):
         return {

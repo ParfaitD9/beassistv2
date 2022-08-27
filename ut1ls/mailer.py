@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -115,13 +117,19 @@ class Agenda(GoogleAPI):
     def __init__(self):
         self.service = self.authenticate('calendar', 'v3')
 
-    def events(self, calendarId='2d92kdfv7o5s5o8ph3d3fi03k8@group.calendar.google.com', _from : dt = dt.utcnow(), to = (dt.utcnow() + timedelta(days=7)), limit=10):
+    def events(self, _from : dt = dt.utcnow(), to = (dt.utcnow() + timedelta(days=7)), limit=10):
         # Call the Calendar API
         _from = _from.isoformat() + 'Z'  # 'Z' indicates UTC time
-        events_result = self.service.events().list(calendarId=calendarId, timeMin=_from,
+        to = to.isoformat() + 'Z'
+        events_result = self.service.events().list(calendarId=os.getenv('CALENDAR_ID'), timeMin=_from, timeMax=to,
                                             maxResults=limit, singleEvents=True,
                                             orderBy='startTime').execute()
-        events = events_result.get('items', [])
-
-        return events
         
+        return events_result.get('items', [])
+    
+    def events_of(self, date : dt = dt.utcnow(), to : int = 1):
+        date = date.isoformat() + 'Z'
+        tomorrow = (dt.utcnow() + timedelta(days=to)).isoformat() + 'Z'
+        events_result = self.service.events().list(calendarId=os.getenv('CALENDAR_ID'), timeMin=date, timeMax=tomorrow).execute()
+
+        return events_result.get('items', [])

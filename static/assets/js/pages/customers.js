@@ -40,7 +40,7 @@ function createRow(data) {
             />
         </div>
         <div class="d-flex flex-column justify-content-center">
-            <h6 class="mb-0 text-sm" data-bs-toggle="modal" data-bs-target="#customerDetailModal">${
+            <h6 class="mb-0 text-sm" data-bs-toggle="modal" data-bs-target="#customerDetailModal" onclick="fillCustomerDetail(event)">${
               data.name.length > 30
                 ? data.name.slice(0, 30) + " ..."
                 : data.name
@@ -208,4 +208,18 @@ function customer_update(e) {
       });
     })
     .catch((err) => console.log(err));
+}
+
+function fillCustomerDetail(e) {
+  let modal = document.querySelector('#customerDetailModal')
+  let pk = e.target.parentElement.parentElement.parentElement.parentElement.id
+  axios.get(`/api/v1/customer/${pk}`).then(res => {
+    if (res.data.success) {
+      modal.querySelector('#modalName').textContent = res.data.data.name
+      modal.querySelector('#modalEmail').textContent = res.data.data.email
+      modal.querySelector('#modalJoined').textContent = res.data.data.joined
+      modal.querySelector('#modalPhone').textContent = res.data.data.phone
+      modal.querySelector('#modalAdresse').textContent = `${res.data.data.porte} ${res.data.data.street} ${res.data.data.city.name}`
+    }
+  }).catch(err => console.log(err))
 }

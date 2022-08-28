@@ -146,7 +146,7 @@
         </div>
         <div class="alert" role="alert"><p></p></div>
         <div class="modal-body">
-          <input type="number" name="pk" id="ref" hidden>
+            <input type="number" name="pk" id="ref" hidden>
             <div class="form-group">
                 <label for="obj">Objet de la facturation</label>
                 <input type="text" name="obj" id="obj" class="form-control">
@@ -169,10 +169,98 @@
     </div>
   </div>
 </div>
+
+<div
+  id="updateProdModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="updateProdModalLabel"
+>
+  <div class="modal-dialog" style="margin-right: 45%;">
+    <div class="modal-content" style="width: 175%;">
+      <div class="modal-header">
+        <h4 class="modal-title" id="updateProdModalLabel">
+          Facturer et envoyer une liste de production
+        </h4>
+        <button
+          type="button"
+          class="btn bi bi-x"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="alert" role="alert"><p></p></div>
+      <form id="updateProdModalForm">
+        <div class="modal-body">
+          <div class="card-group">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Contrats inclus</h5>
+                <ul id="includedPacks">
+
+                </ul>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Modifier</h5>
+                  <input type="number" name="pk" id="ref2" hidden>
+                  <div class="form-group">
+                    <label for="prodName">Nom de la production</label>
+                    <input name="name" id="prodName" class="form-control" readonly></input>
+                  </div>
+                  <div class="form-group">
+                    <label for="obj">Contrat à ajouter</label>
+                    <select name="to-add" id="pack-to-add" class="form-control"></select>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button  
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            type="reset"
+          >Fermer</button>
+          <button type="submit" class="btn btn-success">Ajout de contrat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {%endblock%}
 <br>
 {% block js%}
 <script src="/static/assets/js/pages/productions.js"></script>
+<script>
+  function updateLoading(e) {
+    let row = e.target.parentElement.parentElement.parentElement.parentElement;
+    let box = document.querySelector('ul#includedPacks')
+    axios.get(`/api/v1/production/${row.id}`).then(res => {
+      if (res.data.success) {
+        document.querySelector('input#ref2').value = res.data.data.pk
+        document.querySelector('input#prodName').value = res.data.data.name
+
+        box.querySelectorAll('li').forEach(li => li.remove())
+        axios.get(`/api/v1/listpacks?prod=${row.id}`)
+          .then(res2 => {
+            res2.data.data.forEach(element => {
+            box?.appendChild(modalLine(element))
+          })
+        }).catch(err2 => console.log(err2))
+      }
+    }).catch(err => console.log(err))
+  }
+
+  function modalLine(lp) {
+    let li = document.createElement('li')
+    li.id = `rm-${lp.pk}`
+    let cntnt = `<span>Contrat de ${lp.pack.customer.name}</span> <i class="bi bi-trash text-danger" onclick="remove_pack(event)"></i>`
+    li.innerHTML = cntnt 
+    return li
+  }
+</script>
 {%endblock%}
 {% block chartbox%}
 {%endblock%}

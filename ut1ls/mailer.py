@@ -124,12 +124,10 @@ class Agenda(GoogleAPI):
         events_result = self.service.events().list(calendarId=os.getenv('CALENDAR_ID', 'primary'), timeMin=_from, timeMax=to,
                                             maxResults=limit, singleEvents=True,
                                             orderBy='startTime').execute()
-        
         return events_result.get('items', [])
     
     def events_of(self, date : dt = dt.utcnow(), to : int = 1):
         date = date.isoformat() + 'Z'
         tomorrow = (dt.utcnow() + timedelta(days=to)).isoformat() + 'Z'
         events_result = self.service.events().list(calendarId=os.getenv('CALENDAR_ID', 'primary'), timeMin=date, timeMax=tomorrow).execute()
-
         return events_result.get('items', [])

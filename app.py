@@ -1,3 +1,4 @@
+from re import T
 from flask import Flask, send_from_directory
 from flask import render_template, request
 from flask.json import jsonify
@@ -568,6 +569,60 @@ def api_production_send(pk):
                 'message': f'Liste de production {prod.name} facturé avec succès'
             }
     return jsonify(r)
+
+# List pack endpoints
+@app.route('/api/v1/listpack/create', methods=['POST'])
+def api_listpack_create():
+    prod : ListProduction = ListProduction.get(pk=request.form.get('pk', type=int))
+    pack : Pack = Pack.get(pk=request.form.get('to-add', type=int))
+
+    lp = ListPack.create(
+        prod=prod,
+        pack=pack
+    )
+
+    return jsonify({
+        'success':True,
+        'data':lp.serialize(),
+        'message':f"Contrat {pack.name} ajouté à la liste {prod.name}"
+    })
+
+@app.route('/api/v1/listpacks')
+def api_listpacks():
+    query = ListPack.select().join(ListProduction)
+    pack = request.args.get('pack', 0, type=int)
+    prod = request.args.get('prod', 0, type=int)
+
+    if pack:
+        query.where(Pack.pk == pack)
+    
+    if prod:
+        query.where(ListProduction.pk == prod)
+    
+    return jsonify({
+        'success':True,
+        'data':[q.serialize() for q in query],
+        'message':''
+    })
+
+@app.route('/api/v1/listpack/delete/<int:pk>', methods=['POST'])
+def api_listpack_delete(pk):
+    try:
+        lp : ListPack = ListPack.get_by_id(pk)
+    except (pw.DoesNotExist, ):
+        return jsonify({
+            'success':False,
+            'data':'',
+            'message':f'Lien non trouvé'
+        })
+    else:
+        lp.delete_instance()
+        return jsonify({
+            'success':True,
+            'data':lp.serialize(),
+            'message':f'{lp.pack.name} retiré de {lp.prod.name}'
+        })
+
 
 # API Packsubtask
 @app.route('/api/v1/packsubtask/create', methods=['POST',])

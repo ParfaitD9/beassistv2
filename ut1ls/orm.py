@@ -158,11 +158,11 @@ class Customer(BaseModel):
             {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
             {'name': 'organizme-billet', 'type': 'T', 'size': 13,
-                'x1': percent(10), 'x2': percent(65), 'y1': percent(4.3, True), 'y2': percent(5.1, True), 'multiline': True},
+                'x1': percent(10), 'x2': percent(65), 'y1': percent(4.1, True), 'y2': percent(5.1, True), 'multiline': True},
             {'name': 'admin-billet', 'type': 'T', 'size': 11,
                 'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
             {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-                'x1': percent(60), 'x2': percent(95), 'y1': percent(5, True), 'y2': percent(7, True), },
+                'x1': percent(60), 'x2': percent(95), 'y1': percent(6, True), 'y2': percent(7, True), },
             {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
             {'name': 'client-billet', 'type': 'T', 'size': 11,
@@ -189,7 +189,7 @@ class Customer(BaseModel):
         f['organizme'] = "Entretien Excellence & Cie"
         f['facture-hash'] = f'{"Soumission" if self.is_prospect else "Facture"} {_hash}'
         f['organizme-billet'] = '''
-Lavage de vitres - Solutions durables et R&D\n
+Lavage de vitres - Recherche & Développement de solutions d'entretien durable\n
 Mirabel, Québec
         '''
 
@@ -679,7 +679,7 @@ class Event(BaseModel):
         customer : Customer = Customer.get(Customer.name.ilike(name))
         subtasks = list()
         clauses = event.get('description').split('\n')
-        for s, p in [clause.split(' - ') for clause in clauses]:
+        for s, p in [clause.strip().split('-') for clause in clauses]:
             subtasks.append({'service': s.strip().lower().capitalize(), 'value':float(p.strip())})
         
         return {
@@ -848,12 +848,12 @@ class Pack(BaseModel):
                 'x1': percent(10), 'x2': percent(55), 'y1': percent(4, True), 'y2': percent(4, True), },
             {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
-            {'name': 'organizme-billet', 'type': 'T', 'size': 13,
-                'x1': percent(10), 'x2': percent(65), 'y1': percent(4.3, True), 'y2': percent(5.1, True), 'multiline': True},
+            {'name': 'organizme-billet', 'type': 'T', 'size': 10,
+                'x1': percent(10), 'x2': percent(65), 'y1': percent(4.1, True), 'y2': percent(5., True), 'multiline': True},
             {'name': 'admin-billet', 'type': 'T', 'size': 11,
                 'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
             {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-                'x1': percent(60), 'x2': percent(95), 'y1': percent(5.3, True), 'y2': percent(7, True), },
+                'x1': percent(60), 'x2': percent(95), 'y1': percent(6, True), 'y2': percent(7, True), },
             {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
             {'name': 'client-billet', 'type': 'T', 'size': 11,
@@ -880,7 +880,7 @@ class Pack(BaseModel):
         f['organizme'] = "Entretien Excellence & Cie"
         f['facture-hash'] = f'Facture {_hash}'
         f['organizme-billet'] = '''
-Lavage de vitres - Solutions durables et R&D\n
+Lavage de vitres - Recherche & Développement\nde solutions d'entretien durable\n
 Mirabel, Québec
         '''
 
@@ -1206,6 +1206,13 @@ class ListPack(BaseModel):
         return {
             'pack': self.pack.pk,
             'prod':self.prod.pk
+        }
+    
+    def serialize(self):
+        return {
+            'pk':self.id,
+            'pack': self.pack.serialize(),
+            'prod':self.prod.serialize()
         }
 
 # Fonctions utilitaires

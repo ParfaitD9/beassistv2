@@ -3,6 +3,7 @@ $(document).ready((e) => {
   document.querySelectorAll("a.nav-link")[4].classList.add("active");
   fillProductions();
   load_packs();
+  load_packs("pack-to-add")
 });
 
 function createRow(production) {
@@ -12,14 +13,7 @@ function createRow(production) {
     .map((p) => p.name)
     .join(",")
     .slice(0, 30);
-  console.log(
-    production.packs
-      .map((p) => {
-        return p.name;
-      })
-      .join(",")
-  );
-  console.log(text);
+
   row.innerHTML = `
     <td>
       <div class="d-flex px-2 py-1">
@@ -55,7 +49,7 @@ function createRow(production) {
                   </a>
               </li>
               <li>
-                  <a class="font-weight-bold dropdown-item border-radius-md disabled">
+                  <a class="font-weight-bold dropdown-item border-radius-md" data-bs-toggle="modal" data-bs-target="#updateProdModal" onclick="updateLoading(event)">
                       Modifier cette production
                   </a>
               </li>
@@ -154,4 +148,27 @@ function production_delete(e) {
       }
     })
     .catch((err) => console.log(err));
+}
+
+document.querySelector('form#updateProdModalForm')?.addEventListener('submit', e => {
+  e.preventDefault()
+  let data = new FormData(e.target)
+  axios.post(`/api/v1/listpack/create`, data)
+    .then(res => {
+      showModalAlert("updateProdModal", res)
+      document.querySelector('ul#includedPacks')?.appendChild(modalLine(res.data.data))
+    })
+    .catch(err => console.log(err))
+})
+
+function remove_pack(e) {
+  let row = e.target.parentElement
+
+  axios.post(`/api/v1/listpack/delete/${row.id.split('-')[1]}`).then(res => {
+    if (res.data.success) {
+      row.remove()
+    } else {
+      console.log(res.data)
+    }
+  })
 }

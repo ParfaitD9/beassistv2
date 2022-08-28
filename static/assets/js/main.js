@@ -46,8 +46,8 @@ function load_subtasks() {
   }
 }
 
-function load_packs() {
-  let dt = document.querySelector("select#packs");
+function load_packs(fieldId="packs") {
+  let dt = document.querySelector(`select#${fieldId}`);
   if (dt) {
     axios
       .get("/api/v1/packs")

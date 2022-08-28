@@ -5,7 +5,7 @@ function createRow(pack) {
   <td>
     <div class="d-flex px-2 py-1">
         <div class="d-flex flex-column justify-content-center">
-        <a class="mb-0 text-sm h6" href="/pack/${pack.pk}">${pack.name}</a>
+        <h6 class="mb-0 text-sm" title="Détail ${pack.name}">${pack.name}</h6>
         <p class="text-xs text-secondary mb-0">${pack.customer.name}</p>
         </div>
     </div>
@@ -42,9 +42,7 @@ function createRow(pack) {
                 </a>
             </li>
             <li>
-                <a class="font-weight-bold dropdown-item border-radius-md" href="/pack/${
-                  pack.pk
-                }">
+                <a class="font-weight-bold dropdown-item border-radius-md" onclick="updateLoading(event)" data-bs-toggle="modal" data-bs-target="#updatePackModal">
                     Modifier ce contrat
                 </a>
             </li>
@@ -77,6 +75,7 @@ function fillPacks() {
     })
     .catch((err) => console.log(err));
 }
+
 var currentPack = {
   name: "",
   subtasks: [],
@@ -130,33 +129,11 @@ $("form#addPackModalForm").submit((e) => {
 $(document).ready((e) => {
   load_customers();
   load_subtasks();
+  load_subtasks("subtask-to-add");
   fillPacks();
 
   document.querySelector("a.nav-link.active").classList.remove("active");
   document.querySelectorAll("a.nav-link")[2].classList.add("active");
-  /*
-  setTimeout(() => {
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .post(`/api/v1/pack/delete/${row.id}`)
-          .then((res) => {
-            console.log(res.data.message);
-            row.remove();
-          })
-          .catch((err) => console.log(err));
-      });
-    });
-    $("a.facture").click((e) => {
-      let _id =
-        e.target.parentNode.parentNode.parentNode.parentNode.parentNode.id;
-
-      let f = document.querySelector("form#facturePackModalForm");
-      f.querySelector("input#ref").value = _id;
-    });
-  }, 1000);
-  */
 });
 
 document
@@ -180,10 +157,13 @@ soumissionBox = document.querySelector("input#soumissionBox");
 soumissionBox?.addEventListener("click", (e) => filter(e));
 
 function filter(e) {
+  let searchBox = document.querySelector("input#searchBar")
+
   axios
     .get("/api/v1/packs", {
       params: {
         soumissions: Number(soumissionBox.checked),
+        search : searchBox.value
       },
     })
     .then((res) => fillTable(res))
@@ -200,27 +180,6 @@ function fillTable(res) {
     res.data.data.forEach((element) => {
       table?.appendChild(createRow(element));
     });
-    /*
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        axios
-          .post(`/api/v1/pack/delete/${row.id}`)
-          .then((res) => {
-            console.log(res.data.message);
-            row.remove();
-          })
-          .catch((err) => console.log(err));
-      });
-    });
-    $("a.facture").click((e) => {
-      let _id =
-        e.target.parentNode.parentNode.parentNode.parentNode.parentNode.id;
-
-      let f = document.querySelector("form#facturePackModalForm");
-      f.querySelector("input#ref").value = _id;
-    });
-    */
   }
 }
 
@@ -243,4 +202,70 @@ function pack_facture(e) {
   let row = e.target.parentElement.parentElement.parentElement.parentElement;
   let f = document.querySelector("form#facturePackModalForm");
   f.querySelector("input#ref").value = row.id;
+}
+
+function modalLine(pst) {
+  let li = document.createElement('li')
+  li.id = `rm-${pst.pk}`
+  li.innerHTML = `<p>${pst.subtask.name} <span class="font-weight-bold">$${pst.value}</span> <i class="bi bi-trash text-danger" onclick="pack_remove_subtask(event)"></p>`
+  return li
+}
+
+function pack_remove_subtask(e) {
+  let row = e.target.parentElement.parentElement
+  axios.post(`/api/v1/packsubtask/delete/${row.id.split('-')[1]}`).then(res => {
+    if (res.data.success) {
+      row.remove()
+    } else {
+      console.log(res.data)
+    }
+  })
+}
+
+document.querySelector('button#modalSubtaskAdd')?.addEventListener('click', e => {
+  e.preventDefault()
+  let form = e.target.parentElement.parentElement
+  let data = new FormData(form)
+  axios.post(`/api/v1/packsubtask/create`, data)
+    .then(res => {
+      document.querySelector('ul#includedSubtasks')?.appendChild(modalLine(res.data.data))
+      form.querySelector('input#modalSubtask').value = ''
+      form.querySelector('input#modalPrice').value = ''
+    })
+    .catch(err => console.log(err))
+})
+
+document.querySelector('form#updatePackModalForm')?.addEventListener('submit', e => {
+  e.preventDefault()
+  let data = new FormData(e.target)
+  axios
+    .post(`/api/v1/pack/update/${data.get('pk')}`, data)
+    .then(res => showModalAlert("updatePackModal", res))
+    .catch(err => console.log(err))
+})
+
+function updateLoading(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  let box = document.querySelector('ul#includedSubtasks')
+
+  axios.get(`/api/v1/pack/${row.id}`).then(res => {
+    if (res.data.success) {
+      document.querySelector('input#ref2').value = res.data.data.pk
+      document.querySelector('input#packName').value = res.data.data.name
+      document.querySelector('input#modalCustomerName').value = res.data.data.customer.name
+
+      box.querySelectorAll('li').forEach(li => li.remove())
+      axios.get(`/api/v1/packsubtasks`, {
+        params : {
+          pack : row.id
+        }
+      })
+        .then(res2 => {
+          res2.data.data.forEach(element => {
+          box?.appendChild(modalLine(element))
+        })
+      }).catch(err2 => console.log(err2))
+    }
+  }).catch(err => console.log(err))
+  
 }

@@ -207,7 +207,7 @@
                   <input type="number" name="pk" id="ref2" hidden>
                   <div class="form-group">
                     <label for="prodName">Nom de la production</label>
-                    <input name="name" id="prodName" class="form-control" readonly></input>
+                    <input name="prodName" id="prodName" class="form-control"></input>
                   </div>
                   <div class="form-group">
                     <label for="obj">Contrat à ajouter</label>
@@ -223,7 +223,8 @@
             data-bs-dismiss="modal"
             type="reset"
           >Fermer</button>
-          <button type="submit" class="btn btn-success">Ajout de contrat</button>
+          <button class="btn btn-primary" id="modalPackAdding">Ajout de contrat</button>
+          <button type="submit" class="btn btn-success">Modifer</button>
         </div>
       </form>
     </div>

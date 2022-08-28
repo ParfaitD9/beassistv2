@@ -157,7 +157,7 @@ class Customer(BaseModel):
                 'x1': percent(10), 'x2': percent(55), 'y1': percent(4, True), 'y2': percent(4, True), },
             {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
                 'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
-            {'name': 'organizme-billet', 'type': 'T', 'size': 13,
+            {'name': 'organizme-billet', 'type': 'T', 'size': 10,
                 'x1': percent(10), 'x2': percent(65), 'y1': percent(4.1, True), 'y2': percent(5.1, True), 'multiline': True},
             {'name': 'admin-billet', 'type': 'T', 'size': 11,
                 'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
@@ -245,22 +245,21 @@ NEQ : 2277408505
                     max_line_height=pdf.font_size
                 )
             pdf.ln(line_height)
+        
+        pdf.set_font(style='', size=14)
+        pdf.cell(txt="Merci de votre confiance et à bientôt!")
 
-        pdf.set_y(percent(60, True))
-        pdf.set_font(style='', size=16)
-        pdf.cell(txt="Merci de votre confiance !")
-
-        if not self.is_prospect:
-            pdf.set_font(style='', size=12)
-            pdf.set_x(percent(60))
-            pdf.multi_cell(
-                w=percent(45),
-                h=percent(1.7, True),
-                txt='''
+        pdf.set_y(percent(75, True))
+        pdf.set_font(style='', size=12)
+        pdf.set_x(percent(60))
+        pdf.multi_cell(
+            w=percent(45),
+            h=percent(1.7, True),
+            txt='''
 Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-        ''',
-                align='L'
-            )
+    ''',
+            align='L'
+        )
         try:
             f.render(os.path.join(
                 DOCS_PATH, f'{_hash}.pdf'))
@@ -590,12 +589,12 @@ class Facture(BaseModel):
             os.remove(
                 os.path.join(DOCS_PATH, f'{self.hash}.pdf')
             )
-            self.delete_instance()
         except (FileNotFoundError, ) as e:
             pass
         except (Exception,) as e:
             print(f'{e.__class__} : {e.args[0]}')
         finally:
+            self.delete_instance()
             print(f'Facture {self.hash} successfully deleted')
 
     def ht(self):
@@ -937,9 +936,10 @@ NEQ : 2277408505
                 )
             pdf.ln(line_height)
 
+        pdf.set_font(style='', size=14)
+        pdf.cell(txt="Merci de votre confiance et à bientôt!")
         pdf.set_y(percent(75, True))
-        pdf.set_font(style='', size=16)
-        pdf.cell(txt="Merci de votre confiance !")
+        
 
         pdf.set_font(style='', size=12)
         pdf.set_x(percent(60))
@@ -1105,6 +1105,7 @@ class PackSubTask(BaseModel):
         return {
             'pk':self.id,
             'subtask':self.subtask.serialize(),
+            #'pack':self.pack.serialize(),
             'value':float(self.value)
         }
 

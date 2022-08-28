@@ -153,9 +153,19 @@ function production_delete(e) {
 document.querySelector('form#updateProdModalForm')?.addEventListener('submit', e => {
   e.preventDefault()
   let data = new FormData(e.target)
-  axios.post(`/api/v1/listpack/create`, data)
+  axios.post(`/api/v1/production/update/${data.get('pk')}`, data)
     .then(res => {
       showModalAlert("updateProdModal", res)
+    })
+    .catch(err => console.log(err))
+})
+
+document.querySelector('button#modalPackAdding')?.addEventListener('click', e => {
+  e.preventDefault()
+  let form = e.target.parentElement.parentElement
+  let data = new FormData(form)
+  axios.post(`/api/v1/listpack/create`, data)
+    .then(res => {
       document.querySelector('ul#includedPacks')?.appendChild(modalLine(res.data.data))
     })
     .catch(err => console.log(err))
@@ -163,7 +173,6 @@ document.querySelector('form#updateProdModalForm')?.addEventListener('submit', e
 
 function remove_pack(e) {
   let row = e.target.parentElement
-
   axios.post(`/api/v1/listpack/delete/${row.id.split('-')[1]}`).then(res => {
     if (res.data.success) {
       row.remove()

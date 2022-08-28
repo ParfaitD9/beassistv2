@@ -30,8 +30,8 @@ function load_customers() {
   }
 }
 
-function load_subtasks() {
-  let dt = document.querySelector("datalist#subtasks");
+function load_subtasks(fieldId="subtasks") {
+  let dt = document.querySelector(`datalist#${fieldId}`);
   if (dt) {
     axios
       .get("/api/v1/subtasks")
@@ -72,10 +72,3 @@ $("a.backup").click((e) => {
     })
     .catch((err) => console.log(err));
 });
-
-/*
-<script
-      src="https://kit.fontawesome.com/42d5adcbca.js"
-      crossorigin="anonymous"
-    ></script>
-*/

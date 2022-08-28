@@ -136,7 +136,7 @@ def api_customer_update(pk):
         r = {
             'success': True,
             'data': u.serialize(),
-            'message': f'Customer {u.name} modifié'
+            'message': f'Client {u.name} modifié'
         }
     
     return jsonify(r)
@@ -200,10 +200,17 @@ def api_pack_create():
 @app.route('/api/v1/packs')
 def api_packs():
     soumissions = request.args.get('soumissions', type=int)
-    query = Pack.select().join(Customer)
-    if soumissions:
-        query = query.where(Customer.is_prospect == bool(soumissions))
+    search = request.args.get('search', '').strip()
 
+    
+    query : pw.ModelSelect = Pack.select().join(Customer)
+    if soumissions:
+        query : pw.ModelSelect = query.where(Customer.is_prospect == bool(soumissions))
+    if search:
+        if search[0] == '!':
+            query = query.where(Customer.name.contains(search[1:]))
+        else:
+            query = query.where(Pack.name.contains(search))
     ps = [p.serialize() for p in query.order_by(Pack.pk.desc())]
     return jsonify({
         'success':True,
@@ -286,7 +293,7 @@ def api_pack_facture(pk):
         r = {
             'success':s,
             'data':f.serialize() if s else f,
-            'message':'Pack facturé' if s else f
+            'message':f'Pack facturé à {f.hash}' if s else f
         }
     
     return jsonify(r)
@@ -383,7 +390,11 @@ def api_factures():
 
     query : pw.ModelSelect = Facture.select().join(Customer)
     if _hash:
-        query = query.where(Facture.hash.contains(_hash))
+        if _hash[0] == '!':
+            query = query.where(Customer.name.contains(_hash[1:]))
+        else:
+            query = query.where(Facture.hash.contains(_hash))
+        
     if soumissions:
         query = query.where(Customer.is_prospect == bool(soumissions))
     if notsent:
@@ -409,7 +420,7 @@ def api_facture(hash):
         r = {
             'success':True,
             'data':f.serialize(),
-            'message':'Facture'
+            'message':f'Facture {f.hash}'
         }
     
     return jsonify(r)
@@ -518,6 +529,29 @@ def api_production(pk):
             'message':''
         })
 
+@app.route('/api/v1/production/update/<int:pk>', methods=['POST'])
+def api_production_update(pk):
+    try:
+        prod : ListProduction = ListProduction.get(pk=pk)
+    except (pw.DoesNotExist) as e:
+        return jsonify({
+            'success':False,
+            'data':'',
+            'message':f'{e.__class__} : {e.args}'
+        })
+    else:
+        new = request.form.get('prodName', '')
+        if new.strip():
+            prod.name = new.strip().capitalize()
+            prod.save()
+
+        return jsonify({
+            'success':True,
+            'data':prod.serialize(),
+            'message':f'Changement de nom pour {prod.name}'
+        })
+
+
 @app.route('/api/v1/production/delete/<int:pk>', methods=['POST'])
 def api_production_delete(pk):
     try:
@@ -594,10 +628,10 @@ def api_listpacks():
     prod = request.args.get('prod', 0, type=int)
 
     if pack:
-        query.where(Pack.pk == pack)
+        query = query.where(Pack.pk == pack)
     
     if prod:
-        query.where(ListProduction.pk == prod)
+        query = query.where(ListProduction.pk == prod)
     
     return jsonify({
         'success':True,
@@ -651,6 +685,20 @@ def api_packsubtask_create():
             'data':p.serialize(),
             'message':f'{p.subtask.name} ajouté au contrat {p.pack.name}'
         })
+
+@app.route('/api/v1/packsubtasks')
+def api_packsubtasks():
+    pack = request.args.get('pack', 0, type=int)
+
+    query : pw.ModelSelect = PackSubTask.select().join(Pack)
+    if pack:
+        query : list[PackSubTask] = query.where(Pack.pk == pack)
+    
+    return jsonify({
+        'success' : True,
+        'data':[q.serialize() for q in query],
+        'message': f'{query.count()} services trouvés'
+    })
 
 @app.route('/api/v1/packsubtask/<int:pk>', methods=['POST',])
 def api_packsubtask(pk):

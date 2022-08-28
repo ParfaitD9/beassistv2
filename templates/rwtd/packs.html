@@ -181,6 +181,76 @@
 </div>
 
 <div
+  id="updatePackModal"
+  class="modal fade"
+  tabindex="-1"
+  aria-labelledby="updatePackModalLabel"
+>
+  <div class="modal-dialog" style="margin-right: 45%;">
+    <div class="modal-content" style="width: 175%;">
+      <div class="modal-header">
+        <h4 class="modal-title" id="updatePackModalLabel">
+          Modifier un contrat
+        </h4>
+        <button
+          type="button"
+          class="btn bi bi-x"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="alert" role="alert"><p></p></div>
+      <form id="updatePackModalForm">
+        <div class="modal-body">
+          <div class="card-group">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Services inclus</h5>
+                <ul id="includedSubtasks">
+
+                </ul>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Modifier</h5>
+                  <input type="number" name="pk" id="ref2" hidden>
+                  <div class="form-group">
+                    <label for="packName">Nom du contrat</label>
+                    <input name="packName" id="packName" class="form-control">
+                  </div>
+                  <div class="form-group">
+                    <label for="packName">Nom du client</label>
+                    <input id="modalCustomerName" class="form-control" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="obj">Service à ajouter</label>
+                    <input type="text" name="subtask" class="form-control" list="subtask-to-add" id="modalSubtask">
+                    <datalist id="subtask-to-add"></datalist>
+                  </div>
+                  <div class="form-group">
+                    <label for="modalPrice">Prix</label>
+                    <input type="number" name="value" class="form-control" id="modalPrice" min="0">
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button  
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            type="reset"
+          >Fermer</button>
+          <button class="btn btn-primary" id="modalSubtaskAdd">Ajout de service</button>
+          <button type="submit" class="btn btn-success">Modifer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div
   id="facturePackModal"
   class="modal fade"
   tabindex="-1"
@@ -192,7 +262,7 @@
         <input type="number" name="pk" id="ref" hidden>
         <div class="modal-header">
           <h4 class="modal-title" id="facturePackModalLabel">
-            Facture Pack#<span id="facture-pack"></span>
+            Facture Pack
           </h4>
           <button
             type="button"
@@ -222,12 +292,13 @@
             data-bs-dismiss="modal"
             value="Fermer"
           />
-          <input type="submit" class="btn btn-success" value="Save" />
+          <button type="submit" class="btn btn-success">Facturer</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 {%endblock%}
 {%block js%}
 <script src="/static/assets/js/pages/packs.js"></script>

@@ -40,8 +40,8 @@ if __name__ == '__main__':
         except (Exception, ) as e:
             print("Erreur lors de l'activation de l'environnement virtuel:")
             print(f'{e.__class__.__name__} : {e.args[0]}')
-            print("Arrêt du processus d'installation")
-            sys.exit()
+            print("Beassist installera les dépendances sur votre installation de python principale")
+            os.rmdir('./venv')
         else:
             print('Envrionnement virtuel activé avec succès. Étape 2/ accompli')
         

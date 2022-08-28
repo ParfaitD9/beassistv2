@@ -29,7 +29,10 @@ if __name__ == '__main__':
         try:
             distro = platform.system()
             if distro == 'Linux':
-                subprocess.call(['source', 'venv/bin/activate'])
+                try:
+                    subprocess.call(['source', 'venv/bin/activate'])
+                except:
+                    subprocess.call(['.', 'venv/bin/activate'])
             elif distro == 'Windows':
                 subprocess.call(['.\\venv\\Scripts\\activate'])
             else:

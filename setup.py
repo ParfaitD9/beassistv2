@@ -13,38 +13,7 @@ parser.add_argument(
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.cmd == 'install':
-        print("Préparation de l'installation de beassist ...")
-        print("Étape 1/ : Création de l'environnement virtuel ...")
-        try:
-            subprocess.call(['python', '-m', 'venv', 'venv'])
-        except (Exception, ) as e:
-            print("Erreur lors de la création de l'environnement virtuel:")
-            print(f'{e.__class__.__name__} : {e.args[0]}')
-            print("Arrêt du processus d'installation")
-            sys.exit()
-        else:
-            print('Envrionnement virtuel créé avec succès. Étape 1/ accompli')
-        
-        print("Étape 2/ : Activation de l'environnement virtuel ...")
-        try:
-            distro = platform.system()
-            if distro == 'Linux':
-                try:
-                    subprocess.call(['source', 'venv/bin/activate'])
-                except:
-                    subprocess.call(['.', 'venv/bin/activate.fish'])
-            elif distro == 'Windows':
-                subprocess.call(['.\\venv\\Scripts\\activate'])
-            else:
-                raise TypeError("Unsupported platform !")
-        except (Exception, ) as e:
-            print("Erreur lors de l'activation de l'environnement virtuel:")
-            print(f'{e.__class__.__name__} : {e.args[0]}')
-            print("Beassist installera les dépendances sur votre installation de python principale")
-            os.rmdir('./venv')
-        else:
-            print('Envrionnement virtuel activé avec succès. Étape 2/ accompli')
-        
+        print("Préparation de l'installation de beassist ...")    
         print("Étape 3/ : Installation des dépendances ...")
         try:
             subprocess.call(['pip', 'install', '-r', 'requirements.txt'])

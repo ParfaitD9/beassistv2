@@ -48,7 +48,7 @@ if __name__ == '__main__':
             print("BéAssist n'à pas pu définir les répertoires utiles depuis le fichier orm")
             sys.exit()
         else:
-            for path in (DOCS_PATH, BACKUP_PATH, COMPTA_PATH):
+            for path in (DOCS_PATH, BACKUP_PATH, COMPTA_PATH, FILES_PATH):
                 try:
                     os.makedirs(path, exist_ok=True)   
                 except (Exception, ) as e:

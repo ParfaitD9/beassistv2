@@ -1105,8 +1105,7 @@ class PackSubTask(BaseModel):
         return {
             'pk':self.id,
             'subtask':self.subtask.serialize(),
-            #'pack':self.pack.serialize(),
-            'value':float(self.value)
+            'value':float(self.value if self.value else 0)
         }
 
 

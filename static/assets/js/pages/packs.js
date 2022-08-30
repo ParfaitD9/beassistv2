@@ -226,13 +226,17 @@ document.querySelector('button#modalSubtaskAdd')?.addEventListener('click', e =>
   e.preventDefault()
   let form = e.target.parentElement.parentElement
   let data = new FormData(form)
-  axios.post(`/api/v1/packsubtask/create`, data)
+  if (data.get('subtask') && data.get('value')) {
+    axios.post(`/api/v1/packsubtask/create`, data)
     .then(res => {
       document.querySelector('ul#includedSubtasks')?.appendChild(modalLine(res.data.data))
       form.querySelector('input#modalSubtask').value = ''
       form.querySelector('input#modalPrice').value = ''
     })
-    .catch(err => console.log(err))
+    .catch(err => console.log(err)) 
+  } else {
+    showModalAlert("updatePackModal", {data : {message : "Veuillez remplir correctement le formulaire", success : false}})
+  }
 })
 
 document.querySelector('form#updatePackModalForm')?.addEventListener('submit', e => {

@@ -990,7 +990,7 @@ Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au mark
             return False, _hash
 
     def price(self):
-        return float(sum([psub.value for psub
+        return float(sum([psub.value if psub.value else 0 for psub
                           in PackSubTask.select().join(Pack).where(Pack.customer == self.customer)]))
 
     def serialize(self):

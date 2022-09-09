@@ -1,20 +1,23 @@
-from re import T
-from flask import Flask, send_from_directory
-from flask import render_template, request
-from flask.json import jsonify
-from ut1ls.orm import Customer, City, Facture, Event,\
-    ListPack, ListProduction, SubTask, PackSubTask, Pack,  db
-from ut1ls.mailer import Mailer, Agenda
-import peewee as pw
 import json
 import os
 from datetime import datetime as dt
+import logging
+
+from flask import Flask, send_from_directory
+from flask import render_template, request
+from flask.json import jsonify
+import peewee as pw
+
+from ut1ls.orm import Customer, City, Facture, Event,\
+    ListPack, ListProduction, SubTask, PackSubTask, Pack,  db
+from ut1ls.mailer import Mailer, Agenda
 
 
 app = Flask(__name__)
+logger = logging.getLogger('app_logger')
+
 m = Mailer()
 ag = Agenda()
-
 
 @app.route('/')
 def dashboard():
@@ -848,6 +851,7 @@ def api_agenda_day(days):
             'data':sorted([Event.parse_agenda_event(event) for event in events], key= lambda e : e.get('start')),
             'message': f'{len(events)} événements trouvés'
         })
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

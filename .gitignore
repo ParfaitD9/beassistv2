@@ -9,3 +9,4 @@ database.db3
 *.pdf
 *.csv
 files
+node_modules

@@ -1,7 +1,7 @@
 import json
 import os
+import sys
 from datetime import datetime as dt
-import logging
 
 from flask import Flask, send_from_directory
 from flask import render_template, request
@@ -14,7 +14,8 @@ from ut1ls.mailer import Mailer, Agenda
 
 
 app = Flask(__name__)
-logger = logging.getLogger('app_logger')
+#server = Process(target=app.run, kwargs={'port':8000, 'debug':True})
+
 
 m = Mailer()
 ag = Agenda()
@@ -47,6 +48,15 @@ def factures():
 @app.route('/productions')
 def productions():
     return render_template('rwtd/productions.html', **{'actual' : "Productions"})
+
+@app.route('/shutdown', methods=['POST',])
+def shutdown():
+    print(request.environ)
+    return jsonify({
+        'success':True,
+        'message':'Server has been shutdown !',
+        'data':{}
+    })
 # API endpoints
 
 # Customer endpoints

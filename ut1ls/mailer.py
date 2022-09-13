@@ -4,6 +4,7 @@ load_dotenv()
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.auth.exceptions import RefreshError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -33,12 +34,20 @@ class GoogleAPI:
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
+
         if os.path.exists('files/google-api.json'):
             creds = Credentials.from_authorized_user_file('files/google-api.json', SCOPES)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except (RefreshError, ) as e: # pylint: disable=invalid-name
+                    os.unlink('files/google-api.json')
+                    print(f"Unable to refresh token ! {e.args[0]}")
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        'files/credentials.json', SCOPES)
+                    creds = flow.run_local_server(port=0)
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     'files/credentials.json', SCOPES)
@@ -59,6 +68,7 @@ class Mailer(GoogleAPI):
     """"Implémentation des fonctions nécessaires à l'envoi de mail."""
     def __init__(self) -> None:
         self.service = self.authenticate('gmail', 'v1')
+        self.mail = EMAIL
 
     def add_attachment(self, message: MIMEMultipart, filename: str):
         if os.path.exists(filename):
@@ -116,6 +126,7 @@ class Mailer(GoogleAPI):
 class Agenda(GoogleAPI):
     def __init__(self):
         self.service = self.authenticate('calendar', 'v3')
+        self.mail = EMAIL
 
     def events(self, _from : dt = dt.utcnow(), to = (dt.utcnow() + timedelta(days=7)), limit=10):
         # Call the Calendar API

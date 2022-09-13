@@ -215,7 +215,7 @@ NEQ : 2277408505
             ("Désgnation", "Montant"),
             *((task.get('name'), float(task.get('value'))) for task in tasks),
             ("Sous total ", total),
-            ("Tâxes ", total*0.1496),
+            ("Taxes ", total*0.1496),
             ("Total", total*1.1496)
         )
 
@@ -905,7 +905,7 @@ NEQ : 2277408505
             ("Désgnation", "Montant"),
             *((task.subtask.name, task.value) for task in tasks),
             ("Sous total ", self.price()),
-            ("Tâxes ", self.price()*0.1496),
+            ("Taxes ", self.price()*0.1496),
             ("Total", self.price()*1.1496)
         )
 
@@ -1316,7 +1316,7 @@ NEQ : 2277408505
         ("Désgnation", "Montant"),
         *((task.subtask.name, task.value) for task in tasks),
         ("Sous total ", pack.price()),
-        ("Tâxes ", pack.price()*0.1496),
+        ("Taxes ", pack.price()*0.1496),
         ("Total", pack.price()*1.1496)
     )
 
@@ -1471,7 +1471,7 @@ NEQ : 2277408505
         ("Désgnation", "Montant"),
         *((task.subtask.name, task.value) for task in tasks),
         ("Sous total ", pack.price()),
-        ("Tâxes [74284 5506 RT0001] ", pack.price()*0.1496),
+        ("Taxes [74284 5506 RT0001] ", pack.price()*0.1496),
         ("Total", pack.price()*1.1496)
     )
 
@@ -1607,7 +1607,7 @@ NEQ : 2277408505
         ("Désgnation", "Montant"),
         *((task.get('name'), float(task.get('value'))) for task in tasks),
         ("Sous total ", total),
-        ("Tâxes ", total*0.1496),
+        ("Taxes ", total*0.1496),
         ("Total", total*1.1496)
     )
 

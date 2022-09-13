@@ -557,7 +557,12 @@ class Facture(BaseModel):
         dest = os.path.join(
             COMPTA_PATH, f'{self.customer.statut}', f'{self.customer.name}')
         os.makedirs(dest, exist_ok=True)
-        shutil.copy(src, dest)
+        try:
+            shutil.copy(src, dest)
+        except (FileNotFoundError,):
+            return False
+        else:
+            return True
 
     def send(self, corps, mailer):
         if not self.sent and self.customer.email:

@@ -154,6 +154,37 @@ def api_customer_update(pk):
     
     return jsonify(r)
 
+@app.route('/api/v1/customer/facture/<int:pk>', methods=['POST',])
+def api_customer_facture(pk):
+    try:
+        c : Customer = Customer.get(pk=pk)
+    except (pw.DoesNotExist, ) as e:
+        r = {
+            'success':False,
+            'data':'',
+            'message':e.args[0]
+        }
+    else:
+        p : list[Pack] = Pack.select().join(Customer).where(Customer.pk == c.pk)
+        if p:
+            month = dt.today().strftime('%B %Y')
+            success, f = p[0].generate_facture(f"Entretien Excellence - Lavage de vitres - {month}")
+
+            r = {
+                'success':success,
+                'data':f.serialize() if success else f,
+                'message':f'Facture {f.hash} générée !' if success else f"Erreur lors de la génération {f}"
+            }
+
+        else:  
+            r = {
+                'success':True,
+                'data':c.serialize(),
+                'message':f'Pas de pack trouvé pour {c.name}'
+            }
+
+    return jsonify(r)
+
 @app.route('/api/v1/customer/delete/<int:pk>', methods=['POST',])
 def api_customer_delete(pk):
     try:
@@ -478,6 +509,31 @@ def api_facture_send(hash):
             'message':f'Facture {f.hash} bien envoyée à {f.customer.name}'
         }
     
+    return jsonify(r)
+
+@app.route('/api/v1/facture/class/<hash>', methods=['POST',])
+def api_facture_class(hash):
+    try:
+        f : Facture = Facture.get(hash=hash)
+    except (pw.DoesNotExist, ) as e:
+        r = {
+            'success':False,
+            'data':'',
+            'message':e.args[0]
+        }
+    else:
+        if f.regenerate():
+            r = {
+                'success':True,
+                'data':f.serialize(),
+                'message':f'Facture {hash} classée avec succès !'
+            }
+        else:
+            r = {
+                'success':True,
+                'data':f.serialize(),
+                'message':f'Fichier de facture {hash} non existant'
+            }
     return jsonify(r)
 
 @app.route('/api/v1/facture/view/<hash>')

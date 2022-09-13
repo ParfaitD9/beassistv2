@@ -85,8 +85,8 @@ function createRow(data) {
                 Modifier ce client
             </a>
             </li>
-            <li>
-            <a class="mb-1 dropdown-item border-radius-md font-weight-bold disabled">
+            <li onclick="customer_facture(event)">
+            <a class="mb-1 dropdown-item border-radius-md font-weight-bold">
                 Facturer son pack
             </a>
             </li>
@@ -206,6 +206,16 @@ function customer_update(e) {
           el.checked = res.data.data[el.name];
         }
       });
+    })
+    .catch((err) => console.log(err));
+}
+
+function customer_facture(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  axios
+    .post(`/api/v1/customer/facture/${row.id}`)
+    .then((res) => {
+      window.alert(res.data.message)
     })
     .catch((err) => console.log(err));
 }

@@ -4,37 +4,6 @@ $(document).ready((e) => {
   load_customers();
   load_subtasks();
   fillFactures();
-
-  /*
-  setTimeout(() => {
-    document.querySelectorAll("a.delete").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        if (window.confirm(`Voulez-vous supprimer la facture ${row.id} ?`)) {
-          axios
-            .post(`/api/v1/facture/delete/${row.id}`)
-            .then((res) => {
-              if (res.data.success) {
-                row.remove();
-              } else {
-                window.alert(res.data.message);
-              }
-            })
-            .catch((err) => console.log(err));
-        }
-      });
-    });
-    
-    document.querySelectorAll("a.send").forEach((el) => {
-      el.addEventListener("click", (t) => {
-        let row = el.parentElement.parentElement.parentElement.parentElement;
-        document
-          .querySelector("form#sendFactureModalForm")
-          .querySelector("input#ref").value = row.id;
-      });
-    });
-  }, 1000);
-  */
 });
 
 var currentFacture = {
@@ -97,7 +66,7 @@ function createRow(facture) {
             </a>
             </li>
             <li>
-            <a class="font-weight-bold dropdown-item border-radius-md disabled">
+            <a class="font-weight-bold dropdown-item border-radius-md" onclick="facture_class(event)">
                 Classer cette facture
             </a>
             </li>
@@ -145,6 +114,7 @@ $("form#sendFactureModalForm").submit((e) => {
     })
     .catch((err) => console.log(err));
 });
+
 $("input#add-subtask").click((e) => {
   if ($("input#inputSubtask").val() && $("input#inputValue").val()) {
     let sub = document.createElement("li");
@@ -230,6 +200,14 @@ function facture_send(e) {
   document
     .querySelector("form#sendFactureModalForm")
     .querySelector("input#ref").value = row.id;
+}
+
+function facture_class(e) {
+  let row = e.target.parentElement.parentElement.parentElement.parentElement;
+  axios
+    .post(`/api/v1/facture/class/${row.id}`)
+    .then(res => window.alert(res.data.message))
+    .catch(err => console.log(err))
 }
 
 function facture_delete(e) {

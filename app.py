@@ -91,7 +91,7 @@ def api_customers():
     irr = request.args.get('irreguliers', type=int)
     prosp = request.args.get('prospects', type=int)
     name = request.args.get('name', '').strip()
-    query : pw.ModelSelect = Customer.select()#.order_by(Customer.name.asc())
+    query : pw.ModelSelect = Customer.select()
     if name:
         query = query.where(Customer.name.contains(name))
     if prosp:
@@ -870,8 +870,8 @@ def api_state():
                 'factureMonth.sent':factureCeMoisSent,
                 'clientMonth.value':clientCeMois,
                 'clientMonth.percent':round((clientCeMois / clientTotal) * 100, 2),
-                'moneySentTotal':moneySentTotal,
-                'moneyTotal.value':moneySumTotal,
+                'moneySentTotal':round(moneySentTotal, 2),
+                'moneyTotal.value':round(moneySumTotal, 2),
                 'clientTotal': clientTotal,
                 'factureSentTotal': factureSentTotal,
                 'packTotal':packTotal,

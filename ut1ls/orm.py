@@ -198,7 +198,7 @@ Mirabel, Québec
 Directeur des opérations commerciales
 {admin.phone}
 {admin.email}
-NEQ : 2277408505
+NEQ : 2277408508
     '''
 
         f['facture-object'] = f"Objet : {obj}"
@@ -245,11 +245,15 @@ NEQ : 2277408505
                     max_line_height=pdf.font_size
                 )
             pdf.ln(line_height)
-        
+
+        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}\n")
+        pdf.cell(txt="\n\n")
+        #pdf.set_y(percent(60, True))
         pdf.set_font(style='', size=14)
-        pdf.cell(txt="Merci de votre confiance et à bientôt!")
+
 
         pdf.set_y(percent(75, True))
+        pdf.cell(txt="Merci de votre confiance et à bientôt!")
         pdf.set_font(style='', size=12)
         pdf.set_x(percent(60))
         pdf.multi_cell(
@@ -893,7 +897,7 @@ Mirabel, Québec
 Directeur des opérations commerciales
 {admin.phone}
 {admin.email}
-NEQ : 2277408505
+NEQ : 2277408508
     '''
 
         f['facture-object'] = f"Objet : {obj}"
@@ -941,11 +945,14 @@ NEQ : 2277408505
                 )
             pdf.ln(line_height)
 
+        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}\n")
+        pdf.cell(txt="\n\n")
+        # pdf.set_y(percent(60, True))
         pdf.set_font(style='', size=14)
-        pdf.cell(txt="Merci de votre confiance et à bientôt!")
-        pdf.set_y(percent(75, True))
-        
 
+
+        pdf.set_y(percent(75, True))
+        pdf.cell(txt="Merci de votre confiance et à bientôt!")
         pdf.set_font(style='', size=12)
         pdf.set_x(percent(60))
         pdf.multi_cell(
@@ -1219,453 +1226,6 @@ class ListPack(BaseModel):
             'pack': self.pack.serialize(),
             'prod':self.prod.serialize()
         }
-
-# Fonctions utilitaires
-def generate_from_pack(pack: Pack, obj: str):
-    tasks: list[PackSubTask] = PackSubTask.select().join(
-        Pack).where(Pack.customer == pack.customer)
-    today = dt.today().strftime('%Y-%m-%d')
-    _hash = hb.blake2b(
-        f'{pack.name}:{obj}:{int(time.time())}'.encode(),
-        digest_size=4,
-        salt=os.getenv('HASH_SALT').encode()
-    ).hexdigest()
-    _hash = f'{_hash}-{dt.today().year}-{pack.customer.statut}'
-    ctx = {
-        'tasks': tasks,
-        'client': pack.customer,
-        'admin': Customer(
-            name=os.getenv('ADMIN_FULLNAME'),
-            adress=os.getenv('ADIMN_ADRESS'),
-            phone=os.getenv('ADMIN_PHONE'),
-            city=os.getenv('ADMIN_CITY'),
-            email=os.getenv('EMAIL_USER')
-        ),
-        'nas': os.getenv('ADMIN_NAS'),
-        'tvs': os.getenv('ADMIN_TVS'),
-        'date': today,
-        'facture': _hash,
-        'obj': obj,
-        'ht': pack.price(),
-        'taxes': round(pack.price()*0.14975, 2)
-    }
-    admin = Customer(
-        name=os.getenv('ADMIN_FULLNAME'),
-        adress=os.getenv('ADIMN_ADRESS'),
-        phone=os.getenv('ADMIN_PHONE'),
-        city=os.getenv('ADMIN_CITY'),
-        email=os.getenv('EMAIL_USER')
-    )
-    elements = [
-        {'name': 'logo', 'type': 'I', 'size': 0.0, 'align': 'I',
-            'x1': percent(5), 'x2': percent(9), 'y1': percent(4, True), 'y2': percent(7, True), },
-        {'name': 'organizme', 'type': 'T', 'size': 13, 'bold': 1,
-            'x1': percent(10), 'x2': percent(55), 'y1': percent(4, True), 'y2': percent(4, True), },
-        {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
-        {'name': 'organizme-billet', 'type': 'T', 'size': 13,
-            'x1': percent(10), 'x2': percent(65), 'y1': percent(4.3, True), 'y2': percent(5.1, True), 'multiline': True},
-        {'name': 'admin-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
-        {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(5, True), 'y2': percent(7, True), },
-        {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
-        {'name': 'client-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(18.7, True), 'y2': percent(20, True), 'multiline': True},
-    ]
-
-    # here we instantiate the template
-    f = Template(
-        format="A4",
-        elements=elements,
-        title=f"Facture {_hash}",
-        author="Entretien Excellence",
-        unit='mm',
-        creator='FPDF 2',
-        keywords="entretien excellence, facture",
-        subject=f"Facture {_hash}",
-    )
-
-    f.add_page()
-
-    # we FILL some of the fields of the template with the information we want
-    # note we access the elements treating the template instance as a "dict"
-    f['logo'] = './static/icons/android-chrome-192x192.png'
-    f['organizme'] = "Entretien Excellence & Cie"
-    f['facture-hash'] = f'Facture {_hash}'
-    f['organizme-billet'] = '''
-Lavage de vitres - Solutions durables et R&D\n
-Mirabel, Québec
-    '''
-
-    f['admin-billet'] = f'''
-{admin.name}
-Directeur des opérations commerciales
-{admin.phone}
-{admin.email}
-NEQ : 2277408505
-'''
-
-    f['facture-object'] = f"Objet : {obj}"
-    f['facture-date'] = today
-    f['client-billet'] = f"""
-{pack.customer.name}
-{pack.customer.addresse()}
-{pack.customer.postal}
-{pack.customer.city.name}, {pack.customer.province}
-{pack.customer.email if pack.customer.email else ""}
-"""
-
-    data = (
-        ("Désignation", "Montant"),
-        *((task.subtask.name, task.value) for task in tasks),
-        ("Sous total ", pack.price()),
-        ("Taxes ", pack.price()*0.1496),
-        ("Total", pack.price()*1.1496)
-    )
-
-    pdf: FPDF = f.pdf
-    pdf.set_font("helvetica", size=12)
-    if pack.customer.prospect:
-        pdf.set_y(percent(38, True))
-        pdf.cell(
-            txt=f"Cher {pack.customer.name}, Entretien Excellence vous propose les services suivant : ")
-    pdf.set_y(percent(40, True))
-    line_height = pdf.font_size * 1.75
-    col_width = pdf.epw / 2  # distribute content evenly
-    for i, row in enumerate(data):
-        if i in (0, len(data) - 1):
-            pdf.set_font(style='B')
-        else:
-            pdf.set_font(style='')
-
-        for j, col in enumerate(row):
-            pdf.multi_cell(
-                col_width,
-                line_height,
-                f'{col:.2f} $' if i != 0 and j == 1 else col,
-                border=1,
-                align=('C' if j == 1 or i in (0, len(data) - 1) else 'L'),
-                new_x="RIGHT", new_y="TOP",
-                max_line_height=pdf.font_size
-            )
-        pdf.ln(line_height)
-
-    pdf.set_y(percent(60, True))
-    pdf.set_font(style='', size=16)
-    pdf.cell(txt="Merci de votre confiance !")
-
-    pdf.set_font(style='', size=12)
-    pdf.set_x(percent(60))
-    pdf.multi_cell(
-        w=percent(45),
-        h=percent(1.7, True),
-        txt='''
-Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-''',
-        align='L'
-    )
-    try:
-        f.render(os.path.join(
-            DOCS_PATH, f'{_hash}.pdf'))
-    except (Exception,) as e:
-        print(e.__class__.__name__, e.args[0])
-        return False, e.args[0]
-    else:
-        return True, _hash
-
-
-def generate_facture(pack: Pack, obj: str):
-    tasks: list[PackSubTask] = PackSubTask.select().join(
-        Pack).where(Pack.customer == pack.customer)
-    today = dt.today().strftime('%Y-%m-%d')
-    _hash = hb.blake2b(
-        f'{pack.name}:{obj}:{int(time.time())}'.encode(),
-        digest_size=4,
-        salt=os.getenv('HASH_SALT').encode()
-    ).hexdigest()
-    _hash = f'{_hash}-{dt.today().year}-{pack.customer.statut}'
-    ctx = {
-        'tasks': tasks,
-        'client': pack.customer,
-        'admin': Customer(
-            name=os.getenv('ADMIN_FULLNAME'),
-            adress=os.getenv('ADIMN_ADRESS'),
-            phone=os.getenv('ADMIN_PHONE'),
-            city=os.getenv('ADMIN_CITY'),
-            email=os.getenv('EMAIL_USER')
-        ),
-        'nas': os.getenv('ADMIN_NAS'),
-        'tvs': os.getenv('ADMIN_TVS'),
-        'date': today,
-        'facture': _hash,
-        'obj': obj,
-        'ht': pack.price(),
-        'taxes': round(pack.price()*0.14975, 2)
-    }
-    admin = Customer(
-        name=os.getenv('ADMIN_FULLNAME'),
-        adress=os.getenv('ADIMN_ADRESS'),
-        phone=os.getenv('ADMIN_PHONE'),
-        city=os.getenv('ADMIN_CITY'),
-        email=os.getenv('EMAIL_USER')
-    )
-    elements = [
-        {'name': 'logo', 'type': 'I', 'size': 0.0, 'align': 'I',
-            'x1': percent(5), 'x2': percent(9), 'y1': percent(4, True), 'y2': percent(7, True), },
-        {'name': 'organizme', 'type': 'T', 'size': 13, 'bold': 1,
-            'x1': percent(10), 'x2': percent(55), 'y1': percent(4, True), 'y2': percent(4, True), },
-        {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
-        {'name': 'organizme-billet', 'type': 'T', 'size': 13,
-            'x1': percent(10), 'x2': percent(65), 'y1': percent(4.3, True), 'y2': percent(5.1, True), 'multiline': True},
-        {'name': 'admin-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
-        {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(5, True), 'y2': percent(7, True), },
-        {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
-        {'name': 'client-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(18.7, True), 'y2': percent(20, True), 'multiline': True},
-    ]
-
-    # here we instantiate the template
-    f = Template(
-        format="A4",
-        elements=elements,
-        title=f"Facture {_hash}",
-        author="Entretien Excellence",
-        unit='mm',
-        creator='FPDF 2',
-        keywords="entretien excellence, facture",
-        subject=f"Facture {_hash}",
-    )
-
-    f.add_page()
-
-    # we FILL some of the fields of the template with the information we want
-    # note we access the elements treating the template instance as a "dict"
-    f['logo'] = './static/icons/android-chrome-192x192.png'
-    f['organizme'] = "Entretien Excellence & Cie"
-    f['facture-hash'] = f'Facture {_hash}'
-    f['organizme-billet'] = '''
-Lavage de vitres - Solutions durables et R&D\n
-Mirabel, Québec
-    '''
-
-    f['admin-billet'] = f'''
-{admin.name}
-Directeur des opérations commerciales
-{admin.phone}
-{admin.email}
-NEQ : 2277408505
-'''
-
-    f['facture-object'] = f"Objet : {obj}"
-    f['facture-date'] = today
-    f['client-billet'] = f"""
-{pack.customer.name}
-{pack.customer.addresse()}
-{pack.customer.postal}
-{pack.customer.city.name}, {pack.customer.province}
-{pack.customer.email if pack.customer.email else ""}
-"""
-
-    data = (
-        ("Désignation", "Montant"),
-        *((task.subtask.name, task.value) for task in tasks),
-        ("Sous total ", pack.price()),
-        ("Taxes [74284 5506 RT0001] ", pack.price()*0.1496),
-        ("Total", pack.price()*1.1496)
-    )
-
-    pdf: FPDF = f.pdf
-    pdf.set_font("helvetica", size=12)
-    if pack.customer.prospect:
-        pdf.set_y(percent(38, True))
-        pdf.cell(
-            txt=f"Cher {pack.customer.name}, Entretien Excellence vous propose les services suivant : ")
-    pdf.set_y(percent(40, True))
-    line_height = pdf.font_size * 1.75
-    col_width = pdf.epw / 2  # distribute content evenly
-    for i, row in enumerate(data):
-        if i in (0, len(data) - 1):
-            pdf.set_font(style='B')
-        else:
-            pdf.set_font(style='')
-
-        for j, col in enumerate(row):
-            pdf.multi_cell(
-                col_width,
-                line_height,
-                f'{col:.2f} $' if i != 0 and j == 1 else col,
-                border=1,
-                align=('C' if j == 1 or i in (0, len(data) - 1) else 'L'),
-                new_x="RIGHT", new_y="TOP",
-                max_line_height=pdf.font_size
-            )
-        pdf.ln(line_height)
-
-    pdf.set_y(percent(60, True))
-    pdf.set_font(style='', size=16)
-    pdf.cell(txt="Merci de votre confiance !")
-
-    if not pack.customer.prospect:
-        pdf.set_font(style='', size=12)
-        pdf.set_x(percent(60))
-        pdf.multi_cell(
-            w=percent(45),
-            h=percent(1.7, True),
-            txt='''
-Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-    ''',
-            align='L'
-        )
-
-    try:
-        f.render(f'{_hash}.pdf')
-    except (Exception,) as e:
-        print(e.__class__.__name__, e.args[0])
-        return False, e.args[0]
-    else:
-        return True, _hash
-
-
-def generate_from_tasks(customer: Customer, obj: str, tasks: list[dict]):
-    today = dt.today().strftime('%Y-%m-%d')
-    _hash = hb.blake2b(
-        f'RandomPack:{obj}:{int(time.time())}'.encode(),
-        digest_size=4,
-        salt=os.getenv('HASH_SALT').encode()
-    ).hexdigest()
-    _hash = f'{_hash}-{dt.today().year}-{customer.statut}'
-    admin = Customer(
-        name=os.getenv('ADMIN_FULLNAME'),
-        adress=os.getenv('ADIMN_ADRESS'),
-        phone=os.getenv('ADMIN_PHONE'),
-        city=os.getenv('ADMIN_CITY'),
-        email=os.getenv('EMAIL_USER')
-    )
-    elements = [
-        {'name': 'logo', 'type': 'I', 'size': 0.0, 'align': 'I',
-            'x1': percent(5), 'x2': percent(9), 'y1': percent(4, True), 'y2': percent(7, True), },
-        {'name': 'organizme', 'type': 'T', 'size': 13, 'bold': 1,
-            'x1': percent(10), 'x2': percent(55), 'y1': percent(4, True), 'y2': percent(4, True), },
-        {'name': 'facture-hash', 'type': 'T', 'size': 17, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(4., True), 'y2': percent(4., True), },
-        {'name': 'organizme-billet', 'type': 'T', 'size': 13,
-            'x1': percent(10), 'x2': percent(65), 'y1': percent(4.3, True), 'y2': percent(5.1, True), 'multiline': True},
-        {'name': 'admin-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(8.8, True), 'y2': percent(10, True), 'multiline': True},
-        {'name': 'facture-object', 'type': 'T', 'size': 11, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(5, True), 'y2': percent(7, True), },
-        {'name': 'facture-date', 'type': 'T', 'size': 12, 'align': 'R',
-            'x1': percent(60), 'x2': percent(95), 'y1': percent(7., True), 'y2': percent(9., True), },
-        {'name': 'client-billet', 'type': 'T', 'size': 11,
-            'x1': percent(5), 'x2': percent(50), 'y1': percent(18.7, True), 'y2': percent(20, True), 'multiline': True},
-    ]
-
-    # here we instantiate the template
-    f = Template(
-        format="A4",
-        elements=elements,
-        title=f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}',
-        author="Entretien Excellence",
-        unit='mm',
-        creator='FPDF 2',
-        keywords="entretien excellence, facture",
-        subject=f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}',
-    )
-
-    f.add_page()
-
-    # we FILL some of the fields of the template with the information we want
-    # note we access the elements treating the template instance as a "dict"
-    f['logo'] = './static/icons/android-chrome-192x192.png'
-    f['organizme'] = "Entretien Excellence & Cie"
-    f['facture-hash'] = f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}'
-    f['organizme-billet'] = '''
-Lavage de vitres - Solutions durables et R&D\n
-Mirabel, Québec
-    '''
-
-    f['admin-billet'] = f'''
-{admin.name}
-Directeur des opérations commerciales
-{admin.phone}
-{admin.email}
-NEQ : 2277408505
-'''
-
-    f['facture-object'] = f"Objet : {obj}"
-    f['facture-date'] = today
-    f['client-billet'] = f"""
-{customer.name}
-{customer.addresse()}
-{customer.postal}
-{customer.city.name}, {customer.province}
-{customer.email if customer.email else ""}
-"""
-    total = sum((float(task.get('value')) for task in tasks))
-    data = (
-        ("Désignation", "Montant"),
-        *((task.get('name'), float(task.get('value'))) for task in tasks),
-        ("Sous total ", total),
-        ("Taxes ", total*0.1496),
-        ("Total", total*1.1496)
-    )
-
-    pdf: FPDF = f.pdf
-    pdf.set_font("helvetica", size=12)
-    if customer.prospect:
-        pdf.set_y(percent(38, True))
-        pdf.cell(
-            txt=f"Cher {customer.name}, Entretien Excellence vous propose les services suivant : ")
-    pdf.set_y(percent(40, True))
-    line_height = pdf.font_size * 1.75
-    col_width = pdf.epw / 2  # distribute content evenly
-    for i, row in enumerate(data):
-        if i in (0, len(data) - 1):
-            pdf.set_font(style='B')
-        else:
-            pdf.set_font(style='')
-
-        for j, col in enumerate(row):
-            pdf.multi_cell(
-                col_width,
-                line_height,
-                f'{col:.2f} $' if i != 0 and j == 1 else col,
-                border=1,
-                align=('C' if j == 1 or i in (0, len(data) - 1) else 'L'),
-                new_x="RIGHT", new_y="TOP",
-                max_line_height=pdf.font_size
-            )
-        pdf.ln(line_height)
-
-    pdf.set_y(percent(60, True))
-    pdf.set_font(style='', size=16)
-    pdf.cell(txt="Merci de votre confiance !")
-
-    if not customer.prospect:
-        pdf.set_font(style='', size=12)
-        pdf.set_x(percent(60))
-        pdf.multi_cell(
-            w=percent(45),
-            h=percent(1.7, True),
-            txt='''
-Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-    ''',
-            align='L'
-        )
-    try:
-        f.render(os.path.join(
-            DOCS_PATH, f'{_hash}.pdf'))
-    except (Exception,) as e:
-        print(e.__class__, e.args[0])
-        return False, e.args[0]
-    else:
-        return True, _hash
 
 if __name__ == '__main__':
     args = parser.parse_args()

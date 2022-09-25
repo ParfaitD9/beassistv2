@@ -1,5 +1,4 @@
 import csv
-from functools import reduce
 import shutil
 import peewee as pw
 import time
@@ -875,15 +874,14 @@ class Pack(BaseModel):
             title=f"Facture {_hash}",
             author="Entretien Excellence",
             unit='mm',
-            creator='FPDF 2',
+            creator='Parfait Detchenou <pdetchenou@gmail.com>',
             keywords="entretien excellence, facture",
-            subject=f"Facture {_hash}",
+            subject=f"Facture {_hash}"
         )
 
         f.add_page()
+        pdf: FPDF = f.pdf
 
-        # we FILL some of the fields of the template with the information we want
-        # note we access the elements treating the template instance as a "dict"
         f['logo'] = './static/assets/img/logos/android-chrome-192x192.png'
         f['organizme'] = "Entretien Excellence & Cie"
         f['facture-hash'] = f'Facture {_hash}'
@@ -918,7 +916,7 @@ NEQ : 2277408508
             ("Total", self.price()*1.1496)
         )
 
-        pdf: FPDF = f.pdf
+
         pdf.set_font("helvetica", size=12)
         if self.customer.is_prospect:
             pdf.set_y(percent(27, True))
@@ -945,9 +943,7 @@ NEQ : 2277408508
                 )
             pdf.ln(line_height)
 
-        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}\n")
-        pdf.cell(txt="\n\n")
-        # pdf.set_y(percent(60, True))
+        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}")
         pdf.set_font(style='', size=14)
 
 

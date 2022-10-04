@@ -168,7 +168,10 @@ def api_customer_facture(pk):
         p : list[Pack] = Pack.select().join(Customer).where(Customer.pk == c.pk)
         if p:
             month = dt.today().strftime('%B %Y')
-            success, f = p[0].generate_facture(f"Entretien Excellence - Lavage de vitres - {month}")
+            success, f = p[0].generate_facture(
+                f"Soumision - Entretien Excellence" if p[0].customer.is_prospect else\
+                f"Entretien Excellence - Lavage de vitres - {month}"
+            )
 
             r = {
                 'success':success,

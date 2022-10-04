@@ -884,7 +884,7 @@ class Pack(BaseModel):
 
         f['logo'] = './static/assets/img/logos/android-chrome-192x192.png'
         f['organizme'] = "Entretien Excellence & Cie"
-        f['facture-hash'] = f'Facture {_hash}'
+        f['facture-hash'] = f'Soumission {_hash}' if self.customer.is_prospect else f'Facture {_hash}'
         f['organizme-billet'] = '''
 Lavage de vitres - Recherche & Développement\nde solutions d'entretien durable\n
 Mirabel, Québec
@@ -907,7 +907,7 @@ NEQ : 2277408508
 {self.customer.city.name}, {self.customer.province}
 {self.customer.email if self.customer.email else ""}
     """
-
+        pdf.set_font("helvetica", size=12)
         data = (
             ("Désignation", "Montant"),
             *((task.subtask.name, task.value) for task in tasks),
@@ -917,9 +917,8 @@ NEQ : 2277408508
         )
 
 
-        pdf.set_font("helvetica", size=12)
         if self.customer.is_prospect:
-            pdf.set_y(percent(27, True))
+            pdf.set_y(percent(30, True))
             pdf.cell(
                 txt=f"Cher {self.customer.name}, Entretien Excellence vous propose les services suivant : ")
         pdf.set_y(percent(33, True))
@@ -1101,7 +1100,7 @@ class PackSubTask(BaseModel):
             'subtask':int(data['subtask']),
             'pack':int(data['pack'])
         }
-        
+
     def dumps(self):
         return {
             'value':self.value,

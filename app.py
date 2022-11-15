@@ -1,26 +1,25 @@
-import json
 import os
+import sys
+import json
 from datetime import datetime as dt
 
-from flask import Flask, send_from_directory
-from flask import render_template, request
-from flask.json import jsonify
 import peewee as pw
+from flask import Flask, render_template, request, send_from_directory
+from flask.json import jsonify
 
+from ut1ls.mailer import Agenda, Mailer
 from ut1ls.orm import (
-    Customer,
     City,
-    Facture,
+    Customer,
     Event,
+    Facture,
     ListPack,
     ListProduction,
-    SubTask,
-    PackSubTask,
     Pack,
+    PackSubTask,
+    SubTask,
     db,
 )
-from ut1ls.mailer import Mailer, Agenda
-
 
 app = Flask(__name__)
 # server = Process(target=app.run, kwargs={'port':8000, 'debug':True})
@@ -28,6 +27,7 @@ app = Flask(__name__)
 
 m = Mailer()
 ag = Agenda()
+ENCODING = sys.getfilesystemencoding()
 
 
 @app.route("/")
@@ -626,7 +626,7 @@ def api_production_delete(pk):
 )
 def api_production_send(pk):
     msg = request.form.get("msg", "Petit message à ajouter")
-    obj = request.form.get("obj", "Objet de la facture")
+    obj = request.form.get("obj", "Facture depuis entretien excellence")
     try:
         prod: ListProduction = ListProduction.get(pk=pk)
     except (Exception,) as e:
@@ -635,12 +635,26 @@ def api_production_send(pk):
         packs: list[Pack] = [
             lp.pack for lp in ListPack.select().where(ListPack.prod == prod)
         ]
+        started = dt.now().strftime("%Y-%m-%dT%H:%M:%S")
         for pack in packs:
             try:
                 statut, facture = pack.generate_facture(obj)
                 facture: Facture
                 if statut:
                     facture.send(msg, m)
+                else:
+                    with open(
+                        f"./logs/production-{started}.log", "w", encoding=ENCODING
+                    ) as writer:
+                        txt = "[%(type)s] %(time)s %(errors)s\n"
+                        writer.write(
+                            txt
+                            % {
+                                "type": "ERROR",
+                                "time": dt.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                "errors": f"Impossible de générer une facture pour le pack de {pack.customer}",
+                            }
+                        )
             except (Exception,) as e:
                 return jsonify(
                     {
@@ -800,6 +814,7 @@ def api_packsubtask_delete(pk):
 )
 def api_backup(action):
     if action == "backup":
+        City.to_csv()
         Customer.to_csv()
         Pack.to_csv()
         SubTask.to_csv()
@@ -809,6 +824,7 @@ def api_backup(action):
 
         msg = "Toutes les informations actuelles ont été sauvegardés"
     elif action == "load-backup":
+        City.read_csv()
         Customer.read_csv()
         Pack.read_csv()
         SubTask.read_csv()
@@ -817,6 +833,8 @@ def api_backup(action):
         ListPack.read_csv()
 
         msg = "Les informations ont été bien chargées en base de données"
+    else:
+        msg = "Votre requête n'a pas pu être prise en compte."
     return jsonify(
         {
             "success": True,

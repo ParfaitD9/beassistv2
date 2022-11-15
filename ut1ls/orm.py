@@ -1,17 +1,20 @@
-import csv
-import shutil
-import peewee as pw
-import time
-from fpdf import FPDF
-from datetime import datetime as dt
 import os
+import sys
+import argparse
+import csv
 import hashlib as hb
+import shutil
+import time
+from datetime import datetime as dt
+
+import peewee as pw
+from dotenv import load_dotenv
+from fpdf import FPDF
 from fpdf.template import Template
 from tabulate import tabulate
-from dotenv import load_dotenv
 
+ENCODING = sys.getfilesystemencoding()
 load_dotenv()
-import argparse
 
 
 parser = argparse.ArgumentParser()
@@ -53,23 +56,39 @@ class City(BaseModel):
         return {"pk": self.pk, "name": self.name}
 
     @staticmethod
-    def dump_to_csv(filename="./csv/cities.csv"):
-        with open(filename, "w") as f:
-            w = csv.writer(f)
-            w.writerow(
-                [
+    def to_csv(filename="./backup/cities.csv"):
+        with open(filename, "w", encoding=ENCODING) as f:
+            w = csv.DictWriter(
+                f,
+                fieldnames=[
                     "name",
+                ],
+                delimiter=";",
+            )
+
+            w.writerows(
+                [
+                    {
+                        "name": city.name,
+                    }
+                    for city in City.select()
                 ]
             )
+
+    @staticmethod
+    def read_csv(filename="./backup/cities.csv"):
+        with open(filename, "r", encoding=ENCODING) as f:
+            reader = csv.DictReader(
+                f,
+                fieldnames=[
+                    "name",
+                ],
+                delimiter=";",
+            )
+
             with db.atomic():
-                w.writerows(
-                    [
-                        [
-                            city.name,
-                        ]
-                        for city in City.select()
-                    ]
-                )
+                for city in reader:
+                    City.create(**city)
 
     def __str__(self):
         return f"Ville : {self.name}"
@@ -137,239 +156,7 @@ class Customer(BaseModel):
         self.save()
 
     def generate_from_tasks(self, obj: str, tasks: list[dict]):
-        maintenant = dt.now()
-        _hash = hb.blake2b(
-            f"RandomPack:{obj}:{int(time.time())}".encode(),
-            digest_size=4,
-            salt=os.getenv("HASH_SALT").encode(),
-        ).hexdigest()
-        _hash = f"{_hash}-{dt.today().year}-{self.statut}"
-        admin = Customer(
-            name=os.getenv("ADMIN_FULLNAME"),
-            adress=os.getenv("ADIMN_ADRESS"),
-            phone=os.getenv("ADMIN_PHONE"),
-            city=os.getenv("ADMIN_CITY"),
-            email=os.getenv("EMAIL_USER"),
-        )
-        elements = [
-            {
-                "name": "logo",
-                "type": "I",
-                "size": 0.0,
-                "align": "I",
-                "x1": percent(5),
-                "x2": percent(9),
-                "y1": percent(4, True),
-                "y2": percent(7, True),
-            },
-            {
-                "name": "organizme",
-                "type": "T",
-                "size": 13,
-                "bold": 1,
-                "x1": percent(10),
-                "x2": percent(55),
-                "y1": percent(4, True),
-                "y2": percent(4, True),
-            },
-            {
-                "name": "facture-hash",
-                "type": "T",
-                "size": 17,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(4.0, True),
-                "y2": percent(4.0, True),
-            },
-            {
-                "name": "organizme-billet",
-                "type": "T",
-                "size": 10,
-                "x1": percent(10),
-                "x2": percent(65),
-                "y1": percent(4.1, True),
-                "y2": percent(5.1, True),
-                "multiline": True,
-            },
-            {
-                "name": "admin-billet",
-                "type": "T",
-                "size": 11,
-                "x1": percent(5),
-                "x2": percent(50),
-                "y1": percent(8.8, True),
-                "y2": percent(10, True),
-                "multiline": True,
-            },
-            {
-                "name": "facture-object",
-                "type": "T",
-                "size": 11,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(6, True),
-                "y2": percent(7, True),
-            },
-            {
-                "name": "facture-date",
-                "type": "T",
-                "size": 12,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(7.0, True),
-                "y2": percent(9.0, True),
-            },
-            {
-                "name": "client-billet",
-                "type": "T",
-                "size": 11,
-                "x1": percent(5),
-                "x2": percent(50),
-                "y1": percent(18.7, True),
-                "y2": percent(20, True),
-                "multiline": True,
-            },
-        ]
-
-        # here we instantiate the template
-        f = Template(
-            format="A4",
-            elements=elements,
-            title=f'{"Soumission" if self.is_prospect else "Facture"} {_hash}',
-            author="Entretien Excellence",
-            unit="mm",
-            creator="FPDF 2",
-            keywords="entretien excellence, facture",
-            subject=f'{"Soumission" if self.is_prospect else "Facture"} {_hash}',
-        )
-
-        f.add_page()
-
-        # we FILL some of the fields of the template with the information we want
-        # note we access the elements treating the template instance as a "dict"
-        f["logo"] = "./static/assets/img/logos/android-chrome-192x192.png"
-        f["organizme"] = "Entretien Excellence & Cie"
-        f["facture-hash"] = f'{"Soumission" if self.is_prospect else "Facture"} {_hash}'
-        f[
-            "organizme-billet"
-        ] = """
-Lavage de vitres - Recherche & Développement de solutions d'entretien durable\n
-Mirabel, Québec
-        """
-
-        f[
-            "admin-billet"
-        ] = f"""
-{admin.name}
-Directeur des opérations commerciales
-{admin.phone}
-{admin.email}
-NEQ : 2277408508
-    """
-
-        f["facture-object"] = f"Objet : {obj}"
-        f["facture-date"] = maintenant.strftime("%Y-%m-%d")
-        f[
-            "client-billet"
-        ] = f"""
-{self.name}
-{self.addresse()}
-{self.postal}
-{self.city.name}, {self.province}
-{self.email if self.email else ""}
-    """
-        total = sum((float(task.get("value")) for task in tasks))
-        data = (
-            ("Désignation", "Montant"),
-            *((task.get("name"), float(task.get("value"))) for task in tasks),
-            ("Sous total ", total),
-            ("Taxes ", total * 0.1496),
-            ("Total", total * 1.1496),
-        )
-
-        pdf: FPDF = f.pdf
-        pdf.set_font("helvetica", size=12)
-        if self.is_prospect:
-            pdf.set_y(percent(38, True))
-            pdf.cell(
-                txt=f"Cher {self.name}, Entretien Excellence vous propose les services suivant : "
-            )
-        pdf.set_y(percent(40, True))
-        line_height = pdf.font_size * 1.75
-        col_width = pdf.epw / 2  # distribute content evenly
-        for i, row in enumerate(data):
-            if i in (0, len(data) - 1):
-                pdf.set_font(style="B")
-            else:
-                pdf.set_font(style="")
-
-            for j, col in enumerate(row):
-                pdf.multi_cell(
-                    col_width,
-                    line_height,
-                    f"{col:.2f} $" if i != 0 and j == 1 else col,
-                    border=1,
-                    align=("C" if j == 1 or i in (0, len(data) - 1) else "L"),
-                    new_x="RIGHT",
-                    new_y="TOP",
-                    max_line_height=pdf.font_size,
-                )
-            pdf.ln(line_height)
-
-        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}\n")
-        pdf.cell(txt="\n\n")
-        # pdf.set_y(percent(60, True))
-        pdf.set_font(style="", size=14)
-
-        pdf.set_y(percent(75, True))
-        pdf.cell(txt="Merci de votre confiance et à bientôt!")
-        pdf.set_font(style="", size=12)
-        pdf.set_x(percent(60))
-        pdf.multi_cell(
-            w=percent(45),
-            h=percent(1.7, True),
-            txt="""
-Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-    """,
-            align="L",
-        )
-        try:
-            f.render(os.path.join(DOCS_PATH, f"{_hash}.pdf"))
-        except (Exception,) as e:
-            print(e.__class__, e.args[0])
-            statut, msg = False, e.args[0]
-        else:
-            statut, msg = True, _hash
-
-        if statut:
-            try:
-                f = Facture.create(
-                    hash=_hash,
-                    customer_id=self.pk,
-                    date=maintenant,
-                    cout=total,
-                    obj=obj,
-                    is_soumission=True if self.is_prospect else False,
-                )
-            except (pw.IntegrityError,) as e:
-                print("Same facture seems already exists.")
-                f: Facture = Facture.get(hash=_hash)
-            else:
-                print(f"Facture {_hash} generated")
-                if not f.is_soumission:
-                    t = Event.create(
-                        name=f.obj,
-                        price=f.cout,
-                        executed_at=maintenant,
-                        customer=f.customer,
-                        facture=f,
-                    )
-            return True, f
-        else:
-            return False, _hash
+        return Facture.generate(self, obj, tasks)
 
     @staticmethod
     def to_csv(filename="./backup/customers.csv"):
@@ -389,7 +176,7 @@ Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au mark
             "is_regulier",
             "is_prospect",
         ]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             try:
                 writer.writerows([c.serialize(True) for c in Customer.select()])
@@ -417,7 +204,7 @@ Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au mark
             "is_regulier",
             "is_prospect",
         ]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             Customer.delete().execute()
             with db.atomic():
@@ -529,7 +316,7 @@ class Facture(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/factures.csv"):
         fields = ["hash", "date", "sent", "cout", "obj", "is_soumission", "customer"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             try:
                 writer.writerows([f.serialize(True) for f in Facture.select()])
@@ -542,7 +329,7 @@ class Facture(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/factures.csv"):
         fields = ["hash", "date", "sent", "cout", "obj", "is_soumission", "customer"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             Facture.delete().execute()
             with db.atomic():
@@ -554,6 +341,245 @@ class Facture(BaseModel):
                         pass
                     else:
                         print(f"Facture {f.hash} créé avec succès !")
+
+    @staticmethod
+    def generate(customer: Customer, obj: str, tasks: list[dict]):
+        """Unique implementation for all invoice generation"""
+        maintenant = dt.now()
+        _hash = hb.blake2b(
+            f"RandomPack:{obj}:{int(time.time())}".encode(),
+            digest_size=4,
+            salt=os.getenv("HASH_SALT", "").encode(),
+        ).hexdigest()
+        _hash = f"{_hash}-{dt.today().year}-{customer.statut}"
+        admin = Customer(
+            name=os.getenv("ADMIN_FULLNAME"),
+            adress=os.getenv("ADIMN_ADRESS"),
+            phone=os.getenv("ADMIN_PHONE"),
+            city=os.getenv("ADMIN_CITY"),
+            email=os.getenv("EMAIL_USER"),
+        )
+        elements = [
+            {
+                "name": "logo",
+                "type": "I",
+                "size": 0.0,
+                "align": "I",
+                "x1": percent(5),
+                "x2": percent(9),
+                "y1": percent(4, True),
+                "y2": percent(7, True),
+            },
+            {
+                "name": "organizme",
+                "type": "T",
+                "size": 13,
+                "bold": 1,
+                "x1": percent(10),
+                "x2": percent(55),
+                "y1": percent(4, True),
+                "y2": percent(4, True),
+            },
+            {
+                "name": "facture-hash",
+                "type": "T",
+                "size": 17,
+                "align": "R",
+                "x1": percent(60),
+                "x2": percent(95),
+                "y1": percent(4.0, True),
+                "y2": percent(4.0, True),
+            },
+            {
+                "name": "organizme-billet",
+                "type": "T",
+                "size": 10,
+                "x1": percent(10),
+                "x2": percent(65),
+                "y1": percent(4.1, True),
+                "y2": percent(5.1, True),
+                "multiline": True,
+            },
+            {
+                "name": "admin-billet",
+                "type": "T",
+                "size": 11,
+                "x1": percent(5),
+                "x2": percent(50),
+                "y1": percent(8.8, True),
+                "y2": percent(10, True),
+                "multiline": True,
+            },
+            {
+                "name": "facture-object",
+                "type": "T",
+                "size": 11,
+                "align": "R",
+                "x1": percent(60),
+                "x2": percent(95),
+                "y1": percent(6, True),
+                "y2": percent(7, True),
+            },
+            {
+                "name": "facture-date",
+                "type": "T",
+                "size": 12,
+                "align": "R",
+                "x1": percent(60),
+                "x2": percent(95),
+                "y1": percent(7.0, True),
+                "y2": percent(9.0, True),
+            },
+            {
+                "name": "client-billet",
+                "type": "T",
+                "size": 11,
+                "x1": percent(5),
+                "x2": percent(50),
+                "y1": percent(18.7, True),
+                "y2": percent(20, True),
+                "multiline": True,
+            },
+        ]
+
+        # here we instantiate the template
+        invoice = Template(
+            format="A4",
+            elements=elements,
+            title=f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}',
+            author="Entretien Excellence",
+            unit="mm",
+            creator="FPDF 2",
+            keywords="entretien excellence, facture",
+            subject=f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}',
+        )
+
+        invoice.add_page()
+
+        # we FILL some of the fields of the template with the information we want
+        # note we access the elements treating the template instance as a "dict"
+        invoice["logo"] = "./static/assets/img/logos/android-chrome-192x192.png"
+        invoice["organizme"] = "Entretien Excellence & Cie"
+        invoice[
+            "facture-hash"
+        ] = f'{"Soumission" if customer.is_prospect else "Facture"} {_hash}'
+        invoice[
+            "organizme-billet"
+        ] = """
+Lavage de vitres - Recherche & Développement de solutions d'entretien durable\n
+Mirabel, Québec
+        """
+
+        invoice[
+            "admin-billet"
+        ] = f"""
+{admin.name}
+Directeur des opérations commerciales
+{admin.phone}
+{admin.email}
+NEQ : 2277408508
+    """
+
+        invoice["facture-object"] = f"Objet : {obj}"
+        invoice["facture-date"] = maintenant.strftime("%Y-%m-%d")
+        invoice[
+            "client-billet"
+        ] = f"""
+{customer.name}
+{customer.addresse()}
+{customer.postal}
+{customer.city.name}, {customer.province}
+{customer.email if customer.email else ""}
+    """
+        total = sum((float(task.get("value", "0")) for task in tasks))
+        data = (
+            ("Désignation", "Montant"),
+            *((task.get("name"), float(task.get("value", "0"))) for task in tasks),
+            ("Sous total ", total),
+            ("Taxes ", total * 0.1496),
+            ("Total", total * 1.1496),
+        )
+
+        pdf: FPDF = invoice.pdf
+        pdf.set_font("helvetica", size=12)
+        if customer.is_prospect:
+            pdf.set_y(percent(38, True))
+            pdf.cell(
+                txt=f"Cher {customer.name}, Entretien Excellence vous propose les services suivant : "
+            )
+        pdf.set_y(percent(40, True))
+        line_height = pdf.font_size * 1.75
+        col_width = pdf.epw / 2  # distribute content evenly
+        for i, row in enumerate(data):
+            if i in (0, len(data) - 1):
+                pdf.set_font(style="B")
+            else:
+                pdf.set_font(style="")
+
+            for j, col in enumerate(row):
+                pdf.multi_cell(
+                    col_width,
+                    line_height,
+                    f"{col:.2f} $" if i != 0 and j == 1 else col,
+                    border=1,
+                    align=("C" if j == 1 or i in (0, len(data) - 1) else "L"),
+                    new_x="RIGHT",
+                    new_y="TOP",
+                    max_line_height=pdf.font_size,
+                )
+            pdf.ln(line_height)
+
+        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}\n")
+        pdf.cell(txt="\n\n")
+        # pdf.set_y(percent(60, True))
+        pdf.set_font(style="", size=14)
+
+        pdf.set_y(percent(75, True))
+        pdf.cell(txt="Merci de votre confiance et à bientôt!")
+        pdf.set_font(style="", size=12)
+        pdf.set_x(percent(60))
+        pdf.multi_cell(
+            w=percent(45),
+            h=percent(1.7, True),
+            txt="""
+Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
+    """,
+            align="L",
+        )
+        try:
+            invoice.render(os.path.join(DOCS_PATH, f"{_hash}.pdf"))  # type: ignore
+        except (Exception,) as e:
+            print(e.__class__, e.args[0])
+            statut, _ = False, e.args[0]
+        else:
+            statut, _ = True, _hash
+
+        if statut:
+            try:
+                f = Facture.create(
+                    hash=_hash,
+                    customer=customer,
+                    date=maintenant,
+                    cout=total,
+                    obj=obj,
+                    is_soumission=customer.is_prospect,
+                )
+            except (pw.IntegrityError,):
+                print("Same facture seems already exists.")
+                f: Facture = Facture.get(hash=_hash)
+            else:
+                print(f"Facture {_hash} generated")
+                if not f.is_soumission:
+                    Event.create(
+                        name=f.obj,
+                        price=f.cout,
+                        executed_at=maintenant,
+                        customer=f.customer,
+                        facture=f,
+                    )
+                f.regenerate()
+            return True, f
+        return False, _hash
 
     @staticmethod
     def loads(data: dict):
@@ -621,7 +647,15 @@ class Facture(BaseModel):
     def delete_(self):
         try:
             os.remove(os.path.join(DOCS_PATH, f"{self.hash}.pdf"))
-        except (FileNotFoundError,) as e:
+            os.remove(
+                os.path.join(
+                    COMPTA_PATH,
+                    f"{self.customer.statut}",
+                    f"{self.customer.name}",
+                    f"{self.hash}.pdf",
+                )
+            )
+        except (FileNotFoundError,):
             pass
         except (Exception,) as e:
             print(f"{e.__class__} : {e.args[0]}")
@@ -710,7 +744,7 @@ class SubTask(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/subtasks.csv"):
         fields = ["pk", "name"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             writer.writerows([s.serialize() for s in SubTask.select()])
 
@@ -719,7 +753,7 @@ class SubTask(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/subtasks.csv"):
         fields = ["pk", "name"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             SubTask.delete().execute()
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             with db.atomic():
@@ -757,7 +791,7 @@ class Pack(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/packs.csv"):
         fields = ["pk", "name", "customer"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             writer.writerows([p.dumps() for p in Pack.select()])
 
@@ -766,7 +800,7 @@ class Pack(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/packs.csv"):
         fields = ["pk", "name", "customer"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             Pack.delete().execute()
             with db.atomic():
@@ -801,239 +835,12 @@ class Pack(BaseModel):
         tasks: list[PackSubTask] = (
             PackSubTask.select().join(Pack).where(Pack.customer == self.customer)
         )
-        maintenant = dt.now()
-        _hash = hb.blake2b(
-            f"{self.name}:{obj}:{int(time.time())}".encode(),
-            digest_size=4,
-            salt=os.getenv("HASH_SALT").encode(),
-        ).hexdigest()
-        _hash = f"{_hash}-{dt.today().year}-{self.customer.statut}"
-        admin = Customer(
-            name=os.getenv("ADMIN_FULLNAME"),
-            adress=os.getenv("ADIMN_ADRESS"),
-            phone=os.getenv("ADMIN_PHONE"),
-            city=os.getenv("ADMIN_CITY"),
-            email=os.getenv("EMAIL_USER"),
-        )
-        elements = [
-            {
-                "name": "logo",
-                "type": "I",
-                "size": 0.0,
-                "align": "I",
-                "x1": percent(5),
-                "x2": percent(9),
-                "y1": percent(4, True),
-                "y2": percent(7, True),
-            },
-            {
-                "name": "organizme",
-                "type": "T",
-                "size": 13,
-                "bold": 1,
-                "x1": percent(10),
-                "x2": percent(55),
-                "y1": percent(4, True),
-                "y2": percent(4, True),
-            },
-            {
-                "name": "facture-hash",
-                "type": "T",
-                "size": 17,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(4.0, True),
-                "y2": percent(4.0, True),
-            },
-            {
-                "name": "organizme-billet",
-                "type": "T",
-                "size": 10,
-                "x1": percent(10),
-                "x2": percent(65),
-                "y1": percent(4.1, True),
-                "y2": percent(5.0, True),
-                "multiline": True,
-            },
-            {
-                "name": "admin-billet",
-                "type": "T",
-                "size": 11,
-                "x1": percent(5),
-                "x2": percent(50),
-                "y1": percent(8.8, True),
-                "y2": percent(10, True),
-                "multiline": True,
-            },
-            {
-                "name": "facture-object",
-                "type": "T",
-                "size": 11,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(6, True),
-                "y2": percent(7, True),
-            },
-            {
-                "name": "facture-date",
-                "type": "T",
-                "size": 12,
-                "align": "R",
-                "x1": percent(60),
-                "x2": percent(95),
-                "y1": percent(7.0, True),
-                "y2": percent(9.0, True),
-            },
-            {
-                "name": "client-billet",
-                "type": "T",
-                "size": 11,
-                "x1": percent(5),
-                "x2": percent(50),
-                "y1": percent(18.7, True),
-                "y2": percent(20, True),
-                "multiline": True,
-            },
+        tasks = [task.serialize() for task in tasks]
+        tasks = [
+            {"name": task["subtask"]["name"], "value": task["value"]} for task in tasks
         ]
 
-        # here we instantiate the template
-        f = Template(
-            format="A4",
-            elements=elements,
-            title=f"Facture {_hash}",
-            author="Entretien Excellence",
-            unit="mm",
-            creator="Parfait Detchenou <pdetchenou@gmail.com>",
-            keywords="entretien excellence, facture",
-            subject=f"Facture {_hash}",
-        )
-
-        f.add_page()
-        pdf: FPDF = f.pdf
-
-        f["logo"] = "./static/assets/img/logos/android-chrome-192x192.png"
-        f["organizme"] = "Entretien Excellence & Cie"
-        f["facture-hash"] = (
-            f"Soumission {_hash}" if self.customer.is_prospect else f"Facture {_hash}"
-        )
-        f[
-            "organizme-billet"
-        ] = """
-Lavage de vitres - Recherche & Développement\nde solutions d'entretien durable\n
-Mirabel, Québec
-        """
-
-        f[
-            "admin-billet"
-        ] = f"""
-{admin.name}
-Directeur des opérations commerciales
-{admin.phone}
-{admin.email}
-NEQ : 2277408508
-    """
-
-        f["facture-object"] = f"Objet : {obj}"
-        f["facture-date"] = maintenant.strftime("%Y-%m-%d")
-        f[
-            "client-billet"
-        ] = f"""
-{self.customer.name}
-{self.customer.addresse()}
-{self.customer.postal}
-{self.customer.city.name}, {self.customer.province}
-{self.customer.email if self.customer.email else ""}
-    """
-        pdf.set_font("helvetica", size=12)
-        data = (
-            ("Désignation", "Montant"),
-            *((task.subtask.name, task.value) for task in tasks),
-            ("Sous total ", self.price()),
-            ("Taxes ", self.price() * 0.1496),
-            ("Total", self.price() * 1.1496),
-        )
-
-        if self.customer.is_prospect:
-            pdf.set_y(percent(30, True))
-            pdf.cell(
-                txt=f"Cher {self.customer.name}, Entretien Excellence vous propose les services suivant : "
-            )
-        pdf.set_y(percent(33, True))
-        line_height = pdf.font_size * 2
-        col_width = pdf.epw / 2  # distribute content evenly
-        for i, row in enumerate(data):
-            if i in (0, len(data) - 1):
-                pdf.set_font(style="B")
-            else:
-                pdf.set_font(style="")
-
-            for j, col in enumerate(row):
-                pdf.multi_cell(
-                    col_width,
-                    line_height,
-                    f"{col:.2f} $" if i != 0 and j == 1 else col,
-                    border=1,
-                    align=("C" if j == 1 or i in (0, len(data) - 1) else "L"),
-                    new_x="RIGHT",
-                    new_y="TOP",
-                    max_line_height=pdf.font_size,
-                )
-            pdf.ln(line_height)
-
-        pdf.cell(txt=f"N° de taxes : {os.getenv('ADMIN_TVS')}")
-        pdf.set_font(style="", size=14)
-
-        pdf.set_y(percent(75, True))
-        pdf.cell(txt="Merci de votre confiance et à bientôt!")
-        pdf.set_font(style="", size=12)
-        pdf.set_x(percent(60))
-        pdf.multi_cell(
-            w=percent(45),
-            h=percent(1.7, True),
-            txt="""
-Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au markantoinecloutier@gmail.com\nou comptant
-    """,
-            align="L",
-        )
-
-        try:
-            f.render(os.path.abspath(os.path.join(DOCS_PATH, f"{_hash}.pdf")))
-        except (Exception,) as e:
-            print(e.__class__, e.args)
-            statut = False
-        else:
-            statut = True
-
-        if statut:
-            print("Objet est", obj)
-            try:
-                f = Facture.create(
-                    hash=_hash,
-                    customer_id=self.customer.pk,
-                    date=maintenant,
-                    cout=self.price(),
-                    obj=obj,
-                    is_soumission=True if self.customer.is_prospect else False,
-                )
-            except (pw.IntegrityError,) as e:
-                print("Same facture seems already exists.")
-                print(e, e.args)
-                return False, _hash
-            else:
-                print(f"Facture {_hash} generated")
-                if not f.is_soumission:
-                    t = Event.create(
-                        name=f.obj,
-                        price=f.cout,
-                        executed_at=maintenant,
-                        customer=f.customer,
-                        facture=f,
-                    )
-                return True, f
-        else:
-            return False, _hash
+        return Facture.generate(self.customer, obj, tasks)
 
     def price(self):
         return float(
@@ -1060,7 +867,7 @@ Paiement par chèque au nom de:\nMarc-Antoine Cloutier\nVirement interac au mark
         }
 
     def __str__(self):
-        return self.name
+        return f"{self.name} de {self.customer.name}"
 
 
 class PackSubTask(BaseModel):
@@ -1071,7 +878,7 @@ class PackSubTask(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/packsubtasks.csv"):
         fields = ["value", "subtask", "pack"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             writer.writerows([p.dumps() for p in PackSubTask.select()])
 
@@ -1080,7 +887,7 @@ class PackSubTask(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/packsubtasks.csv"):
         fields = ["value", "subtask", "pack"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             PackSubTask.delete().execute()
             with db.atomic():
@@ -1112,6 +919,9 @@ class PackSubTask(BaseModel):
             "value": float(self.value if self.value else 0),
         }
 
+    def __str__(self) -> str:
+        return f"{self.subtask.name} : {self.value} $ in pack {self.pack}"
+
 
 class ListProduction(BaseModel):
     pk = pw.IntegerField(primary_key=True)
@@ -1131,7 +941,7 @@ class ListProduction(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/listproductions.csv"):
         fields = ["pk", "name"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             writer.writerows([lp.dumps() for lp in ListProduction.select()])
 
@@ -1140,7 +950,7 @@ class ListProduction(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/listproductions.csv"):
         fields = ["pk", "name"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             ListProduction.delete().execute()
             with db.atomic():
@@ -1179,7 +989,7 @@ class ListPack(BaseModel):
     @staticmethod
     def to_csv(filename="./backup/listpacks.csv"):
         fields = ["pack", "prod"]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding=ENCODING) as f:
             writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")
             writer.writerows([lp.dumps() for lp in ListPack.select()])
         return True
@@ -1187,7 +997,7 @@ class ListPack(BaseModel):
     @staticmethod
     def read_csv(filename="./backup/listpacks.csv"):
         fields = ["pack", "prod"]
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding=ENCODING) as f:
             reader = csv.DictReader(f, fieldnames=fields, delimiter=";")
             ListPack.delete().execute()
             with db.atomic():

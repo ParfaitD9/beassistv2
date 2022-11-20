@@ -816,6 +816,7 @@ def api_backup(action):
     if action == "backup":
         City.to_csv()
         Customer.to_csv()
+        Facture.to_csv()
         Pack.to_csv()
         SubTask.to_csv()
         PackSubTask.to_csv()
@@ -826,6 +827,7 @@ def api_backup(action):
     elif action == "load-backup":
         City.read_csv()
         Customer.read_csv()
+        Facture.read_csv()
         Pack.read_csv()
         SubTask.read_csv()
         PackSubTask.read_csv()

@@ -15,7 +15,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2 import credentials
 from googleapiclient.errors import HttpError
 from googleapiclient.discovery import Resource
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -33,16 +35,32 @@ SCOPES = [
     "https://www.googleapis.com/auth/calendar.readonly",
 ]
 EMAIL = os.getenv("EMAIL_USER")
-SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_FILE")
 
 
 class GoogleAPI:
     def authenticate(self, service, version, scopes) -> Resource:
         """Authentication function from service account for google API"""
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=scopes
-        )
-        creds = creds.with_subject(EMAIL)
+        creds = None
+        # The file token.json stores the user's access and refresh tokens, and is
+        # created automatically when the authorization flow completes for the first
+        # time.
+        if os.path.exists("files/google-api.json"):
+            creds = credentials.Credentials.from_authorized_user_file(
+                "files/google-api.json", scopes
+            )
+        # If there are no (valid) credentials available, let the user log in.
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    "files/google-api.json", scopes
+                )
+                creds = flow.run_local_server(port=0)
+            # Save the credentials for the next run
+            with open("files/token.json", "w") as token:
+                token.write(creds.to_json())
+
         return build(serviceName=service, version=version, credentials=creds)
 
 

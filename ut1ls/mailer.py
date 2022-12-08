@@ -22,6 +22,7 @@ from googleapiclient.errors import HttpError
 from googleapiclient.discovery import Resource
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from googleapiclient.discovery import build
+from google.auth.exceptions import RefreshError
 
 from mimetypes import guess_type as guess_mime_type
 
@@ -51,7 +52,14 @@ class GoogleAPI:
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except (RefreshError,) as _:
+                    os.unlink("files/token.json")
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        "files/credentials.json", scopes
+                    )
+                    creds = flow.run_local_server(port=0)
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     "files/credentials.json", scopes
